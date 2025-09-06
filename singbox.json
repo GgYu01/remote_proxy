@@ -1,0 +1,42 @@
+{
+  "log": { "level": "debug" },
+
+  "dns": {
+    "servers": [
+      { "tag": "local", "address": "local" }
+    ],
+    "strategy": "ipv4_only",
+    "final": "local"
+  },
+
+  "inbounds": [
+    {
+      "type": "socks",
+      "listen": "0.0.0.0",
+      "listen_port": 1080,
+      "users": [
+        { "username": "user", "password": "pass" }
+      ]
+    },
+    {
+      "type": "http",
+      "listen": "0.0.0.0",
+      "listen_port": 3128,
+      "users": [
+        { "username": "user", "password": "pass" }
+      ]
+    }
+  ],
+
+  "route": {
+    "rules": [
+      { "ip_version": 6, "outbound": "block" }
+    ],
+    "final": "direct" 
+  },
+
+  "outbounds": [
+    { "type": "direct", "tag": "direct" },
+    { "type": "block",  "tag": "block"  }
+  ]
+}
