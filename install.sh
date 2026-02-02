@@ -1,0 +1,38 @@
+#!/bin/bash
+set -e
+
+# ==============================================================================
+# Script Name: install.sh
+# Description: One-click installation script
+# ==============================================================================
+
+echo "🚀 Starting Remote Proxy Installation..."
+
+# 0. Config Check
+if [ ! -f config.env ]; then
+    echo "ℹ️  config.env not found. Creating from default..."
+    cp config.env.example config.env
+    echo "⚠️  Created config.env. You may want to edit it before proceeding."
+    echo "   Press Enter to continue with defaults, or Ctrl+C to stop and edit."
+    read -r
+fi
+
+# 1. Environment Setup
+echo "🔧 Step 1: Setting up Environment..."
+chmod +x scripts/*.sh
+./scripts/setup_env.sh
+
+# 2. Generate Config
+echo "⚙️  Step 2: Generating Configuration..."
+python3 scripts/gen_config.py
+
+# 3. Deploy
+echo "🚀 Step 3: Deploying Service..."
+./scripts/deploy.sh
+
+echo "========================================================"
+echo "🎉 Installation Complete!"
+echo "--------------------------------------------------------"
+echo "Check service status: systemctl --user status remote-proxy"
+echo "View logs:            journalctl --user -u remote-proxy -f"
+echo "========================================================"

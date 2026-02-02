@@ -14,18 +14,14 @@
 
 ## 2. 详细执行阶段 (Detailed Execution Phases)
 
-### Phase 1: 基础架构与清理 (Infrastructure & Cleanup)
-- [ ] **清理旧环境**: 移除 Docker 相关残留（如果有），确保 Podman 环境纯净。
-- [ ] **目录结构重构**:
-  ```text
-  .
-  ├── config_templates/    # 配置模板 (Jinja2 or envsubst)
-  ├── scripts/             # 管理脚本
-  ├── system/              # Systemd/Quadlet 单元文件
-  ├── docs/                # 文档
-  └── .env.example         # 环境变量示例
-  ```
-- [ ] **依赖检查**: 编写脚本检查 `podman`, `systemd-container` 等依赖。
+### Phase 1: 基础架构与环境准备 (Infrastructure & Environment)
+- [ ] **配置定义**: 创建 `.env.example`，包含 `SWAP_SIZE`, `PODMAN_VERSION`, `PROXY_PORTS`, `USER_UUID` 等关键参数。
+- [ ] **环境初始化脚本 `scripts/setup_env.sh`**:
+  - 检测 Linux 发行版。
+  - 自动更新系统软件包。
+  - 安装/更新 `podman`, `curl`, `jq`, `python3`。
+  - **Swap 管理**: 整合 `manage_swap.sh`，根据配置自动挂载 Swap 防止 OOM。
+- [ ] **目录清理**: 确保脚本具有执行权限，清理无用文件。
 
 ### Phase 2: 配置生成系统 (Configuration System)
 - [ ] **开发 `scripts/gen_config.py`**:
@@ -40,21 +36,25 @@
   - **Hard-mode Debug**: 默认开启 debug 日志，输出到标准输出。
 
 ### Phase 3: Podman Quadlet 集成 (Podman Quadlet Integration)
-- [ ] **编写 `system/proxy.container`**:
+- [ ] **编写 `system/proxy.container` (Template)**:
   - 使用 `ghcr.io/sagernet/sing-box:latest` 镜像。
   - 挂载生成的 `sing-box.json`。
-  - 暴露端口 (默认 10000-10004)。
+  - 动态替换端口配置。
   - 配置资源限制 (MemoryLimit=128M)。
 - [ ] **编写 `scripts/deploy.sh`**:
-  - 自动链接 `.container` 文件到 `~/.config/containers/systemd/`。
+  - 渲染 `.container` 文件。
+  - 自动链接到 `~/.config/containers/systemd/`。
   - 执行 `systemctl --user daemon-reload`。
 
-### Phase 4: 验证与文档 (Verification & Documentation)
+### Phase 4: 一键整合与验证 (Integration & Verification)
+- [ ] **编写 `install.sh`**:
+  - 串联 `setup_env.sh` -> `gen_config.py` -> `deploy.sh`。
+  - 提供友好的交互式/非交互式输出。
 - [ ] **编写验证脚本 `scripts/verify.sh`**:
   - 使用 `curl` 通过 5 种协议分别访问外部 IP (如 ipinfo.io)。
   - 验证失败时自动重试 10 次。
 - [ ] **完善文档**:
-  - 更新 `README.md`。
+  - 更新 `README.md` 为“一键部署”风格。
   - 补全 `docs/` 下的所有文档。
 
 ## 3. 防“偷懒”检查点 (Anti-Lazy Checkpoints)

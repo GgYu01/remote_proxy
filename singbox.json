@@ -1,42 +1,82 @@
 {
-  "log": { "level": "debug" },
-
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
   "dns": {
     "servers": [
-      { "tag": "local", "address": "local" }
+      {
+        "tag": "google",
+        "address": "8.8.8.8"
+      }
     ],
-    "strategy": "ipv4_only",
-    "final": "local"
+    "strategy": "ipv4_only"
   },
-
   "inbounds": [
     {
       "type": "socks",
-      "listen": "0.0.0.0",
-      "listen_port": 1080,
+      "tag": "socks-in",
+      "listen": "::",
+      "listen_port": 10000,
       "users": [
-        { "username": "user", "password": "pass" }
+        {
+          "username": "admin",
+          "password": "password"
+        }
       ]
     },
     {
       "type": "http",
-      "listen": "0.0.0.0",
-      "listen_port": 3128,
+      "tag": "http-in",
+      "listen": "::",
+      "listen_port": 10001,
       "users": [
-        { "username": "user", "password": "pass" }
+        {
+          "username": "admin",
+          "password": "password"
+        }
+      ]
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "ss-in",
+      "listen": "::",
+      "listen_port": 10002,
+      "method": "chacha20-ietf-poly1305",
+      "password": "secret"
+    },
+    {
+      "type": "vmess",
+      "tag": "vmess-in",
+      "listen": "::",
+      "listen_port": 10003,
+      "users": [
+        {
+          "uuid": "3729efa7-c882-4bf9-ae73-b8d85475309f",
+          "alterId": 0
+        }
+      ]
+    },
+    {
+      "type": "trojan",
+      "tag": "trojan-in",
+      "listen": "::",
+      "listen_port": 10004,
+      "users": [
+        {
+          "password": "password"
+        }
       ]
     }
   ],
-
-  "route": {
-    "rules": [
-      { "ip_version": 6, "outbound": "block" }
-    ],
-    "final": "direct" 
-  },
-
   "outbounds": [
-    { "type": "direct", "tag": "direct" },
-    { "type": "block",  "tag": "block"  }
+    {
+      "type": "direct",
+      "tag": "direct"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
   ]
 }
