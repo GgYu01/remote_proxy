@@ -47,17 +47,28 @@
   - 执行 `systemctl --user daemon-reload`。
 
 ### Phase 4: 一键整合与验证 (Integration & Verification)
-- [ ] **编写 `install.sh`**:
+- [x] **编写 `install.sh`**:
   - 串联 `setup_env.sh` -> `gen_config.py` -> `deploy.sh`。
   - 提供友好的交互式/非交互式输出。
-- [ ] **编写验证脚本 `scripts/verify.sh`**:
+- [ ] **编写 `scripts/verify.sh`**:
   - 使用 `curl` 通过 5 种协议分别访问外部 IP (如 ipinfo.io)。
   - 验证失败时自动重试 10 次。
-- [ ] **完善文档**:
+- [x] **完善文档**:
   - 更新 `README.md` 为“一键部署”风格。
   - 补全 `docs/` 下的所有文档。
 
+### Phase 5: 严格审计 (Strict Audit) [NEW]
+- [ ] **编写 `scripts/audit_project.py`**:
+  - **完整性检查**: 确保所有 `scripts/` 下的文件都存在且可执行。
+  - **语法检查**: 对 Shell 脚本执行 `bash -n`，对 Python 脚本执行 `python -m py_compile`。
+  - **文档同步检查**: 检查 `docs/` 文件数量是否符合预期。
+  - **配置检查**: 验证 `singbox.json` (如果存在) 或生成的 JSON 结构是否合法。
+
 ## 3. 防“偷懒”检查点 (Anti-Lazy Checkpoints)
+必须通过 `python3 scripts/audit_project.py` 返回 Exit Code 0 才能标记任务结束。
+
+## 4. 风险预案 (Risk Management)
+
 为了防止 AI 任务过早结束，必须满足以下条件才能标记为 DONE：
 1. **配置文件生成**：必须实际生成了包含 5 种协议的完整 JSON，不能是“示例代码”。
 2. **Systemd 集成**：必须能够通过 `systemctl --user status` 看到服务运行。
