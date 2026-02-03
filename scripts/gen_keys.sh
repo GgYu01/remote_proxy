@@ -39,12 +39,10 @@ echo "   Public:  $PUB_KEY"
 # Append to config.env
 {
     echo ""
-    echo "# --- Reality Configuration (Auto-Generated) ---"
+    echo "# --- Reality Keys (Auto-Generated) ---"
     echo "REALITY_PRIVATE_KEY=$PRIV_KEY"
     echo "REALITY_PUBLIC_KEY=$PUB_KEY"
     echo "REALITY_SHORT_ID=$SHORT_ID"
-    echo "REALITY_DEST=www.microsoft.com:443"
-    echo "REALITY_SERVER_NAMES=www.microsoft.com,microsoft.com"
 } >> config.env
 
-echo "💾 Saved to config.env"
+echo "💾 Saved keys to config.env"
