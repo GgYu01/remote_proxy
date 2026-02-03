@@ -31,7 +31,9 @@ python3 scripts/gen_config.py
 echo "🚀 Step 3: Deploying Service..."
 ./scripts/deploy.sh
 
-echo "========================================================"
+# 4. Show Info
+./scripts/show_info.sh
+
 echo "🎉 Installation Complete!"
 echo "--------------------------------------------------------"
 echo "Check service status: systemctl --user status remote-proxy"
