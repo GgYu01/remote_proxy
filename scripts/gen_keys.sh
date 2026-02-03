@@ -33,10 +33,21 @@ if [ -z "$PRIV_KEY" ]; then
 fi
 
 echo "✅ Generated Keys."
-echo "   Private: $PRIV_KEY"
-echo "   Public:  $PUB_KEY"
 
-# Append to config.env
+# Check if VLESS_UUID is set, if not, generate one
+CURRENT_UUID=$(grep "^VLESS_UUID=" config.env | cut -d'=' -f2)
+if [ -z "$CURRENT_UUID" ]; then
+    echo "🔑 Generating new VLESS_UUID..."
+    NEW_UUID=$(uuidgen || cat /proc/sys/kernel/random/uuid)
+    # We need to replace the empty line or append.
+    # Easiest is to append an override at the bottom.
+    echo "VLESS_UUID=$NEW_UUID" >> config.env
+    echo "   UUID: $NEW_UUID"
+else
+    echo "ℹ️  VLESS_UUID already set."
+fi
+
+# Append Reality keys to config.env
 {
     echo ""
     echo "# --- Reality Keys (Auto-Generated) ---"

@@ -31,6 +31,15 @@ def main():
     reality_dest = config.get('REALITY_DEST', 'www.microsoft.com:443')
     reality_sn = config.get('REALITY_SERVER_NAMES', 'www.microsoft.com').split(',')
 
+    # Validation: If Reality is enabled (implied by default), check for Private Key
+    # We allow reality_priv to be empty ONLY if we fall back to a non-Reality config, 
+    # but our design enforces Reality for VLESS.
+    if not reality_priv:
+        print("❌ ERROR: REALITY_PRIVATE_KEY is missing in config.env!")
+        print("   Solution 1: Run './scripts/gen_keys.sh' to auto-generate keys.")
+        print("   Solution 2: Paste your own keys into config.env.")
+        exit(1)
+
     print(f"Generating config with Base Port: {base_port}")
     
     sb_config = {
