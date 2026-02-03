@@ -25,12 +25,23 @@ create_mock() {
 create_mock "sudo"
 create_mock "apt-get"
 create_mock "yum"
-create_mock "podman"
 create_mock "systemctl"
 create_mock "swapon"
 create_mock "swapoff"
 create_mock "mkswap"
 create_mock "fallocate"
+
+# Specialized Podman Mock
+echo "#!/bin/bash" > "$TEST_DIR/podman"
+echo 'echo "[MOCK] Executing podman $@" >> "'"$LOG_FILE"'"' >> "$TEST_DIR/podman"
+echo 'if [[ "$@" == *"generate reality-keypair"* ]]; then' >> "$TEST_DIR/podman"
+echo '  echo "PrivateKey: mock_private_key_12345"' >> "$TEST_DIR/podman"
+echo '  echo "PublicKey: mock_public_key_67890"' >> "$TEST_DIR/podman"
+echo 'else' >> "$TEST_DIR/podman"
+echo '  echo "Podman mock output"' >> "$TEST_DIR/podman"
+echo 'fi' >> "$TEST_DIR/podman"
+chmod +x "$TEST_DIR/podman"
+
 # We do NOT mock python3 because we want to verify the actual python script logic
 
 echo ">>> Starting Simulation..." > "$LOG_FILE"

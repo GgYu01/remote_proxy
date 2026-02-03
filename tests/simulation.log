@@ -11,6 +11,12 @@
 [MOCK] Executing podman info
 ✅ Environment Setup Complete.
 ⚙️  Step 2: Generating Configuration...
+🔑 Generating Reality Keypair...
+[MOCK] Executing podman run --rm ghcr.io/sagernet/sing-box:latest generate reality-keypair
+✅ Generated Keys.
+   Private: mock_private_key_12345
+   Public:  mock_public_key_67890
+💾 Saved to config.env
 Generating config with Base Port: 10000
 [OK] singbox.json generated successfully.
 🚀 Step 3: Deploying Service...

@@ -24,6 +24,7 @@ chmod +x scripts/*.sh
 
 # 2. Generate Config
 echo "⚙️  Step 2: Generating Configuration..."
+./scripts/gen_keys.sh
 python3 scripts/gen_config.py
 
 # 3. Deploy

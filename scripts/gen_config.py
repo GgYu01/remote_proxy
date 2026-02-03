@@ -24,6 +24,12 @@ def main():
     ss_method = config.get('SS_METHOD', 'chacha20-ietf-poly1305')
     ss_pass = config.get('SS_PASSWORD', 'secret')
     
+    # Reality Config
+    reality_priv = config.get('REALITY_PRIVATE_KEY')
+    reality_short_id = config.get('REALITY_SHORT_ID', '')
+    reality_dest = config.get('REALITY_DEST', 'www.microsoft.com:443')
+    reality_sn = config.get('REALITY_SERVER_NAMES', 'www.microsoft.com').split(',')
+
     print(f"Generating config with Base Port: {base_port}")
     
     sb_config = {
@@ -64,13 +70,26 @@ def main():
                 "method": ss_method,
                 "password": ss_pass
             },
-            # 4. VLESS (High Efficiency, Low Overhead) - REPLACES VMess as Primary
+            # 4. VLESS + Reality (Stealth King)
             {
                 "type": "vless",
                 "tag": "vless-in",
                 "listen": "::",
                 "listen_port": base_port + 3,
-                "users": [{"uuid": vmess_uuid, "flow": ""}]
+                "users": [{"uuid": vmess_uuid, "flow": "xtls-rprx-vision"}],
+                "tls": {
+                    "enabled": True,
+                    "server_name": reality_sn[0],
+                    "reality": {
+                        "enabled": True,
+                        "handshake": {
+                            "server": reality_dest,
+                            "server_port": 443
+                        },
+                        "private_key": reality_priv,
+                        "short_id": [reality_short_id]
+                    }
+                } if reality_priv else None
             },
             # 5. Trojan (HTTPS Camouflage, Stability)
             {
