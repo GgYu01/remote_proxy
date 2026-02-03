@@ -84,7 +84,7 @@ main() {
     check_port "$BASE_PORT" "SOCKS5" || true
     check_port "$(($BASE_PORT + 1))" "HTTP" || true
     check_port "$(($BASE_PORT + 2))" "Shadowsocks" || true
-    check_port "$(($BASE_PORT + 3))" "VMess" || true
+    check_port "$(($BASE_PORT + 3))" "VLESS" || true
     check_port "$(($BASE_PORT + 4))" "Trojan" || true
 
     # 2. Functional Checks (Only SOCKS5 and HTTP are easily curl-able)

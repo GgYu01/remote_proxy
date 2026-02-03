@@ -32,11 +32,14 @@ def main():
             "timestamp": True
         },
         "dns": {
-            "servers": [{"tag": "google", "address": "8.8.8.8"}],
+            "servers": [
+                {"tag": "google", "address": "8.8.8.8"},
+                {"tag": "local", "address": "local"}
+            ],
             "strategy": "ipv4_only"
         },
         "inbounds": [
-            # 1. SOCKS5
+            # 1. SOCKS5 (Local/Debug)
             {
                 "type": "socks",
                 "tag": "socks-in",
@@ -44,7 +47,7 @@ def main():
                 "listen_port": base_port,
                 "users": [{"username": user, "password": password}]
             },
-            # 2. HTTP
+            # 2. HTTP (Local/Debug)
             {
                 "type": "http",
                 "tag": "http-in",
@@ -52,7 +55,7 @@ def main():
                 "listen_port": base_port + 1,
                 "users": [{"username": user, "password": password}]
             },
-            # 3. Shadowsocks
+            # 3. Shadowsocks (Low Mem, High Speed)
             {
                 "type": "shadowsocks",
                 "tag": "ss-in",
@@ -61,15 +64,15 @@ def main():
                 "method": ss_method,
                 "password": ss_pass
             },
-            # 4. VMess
+            # 4. VLESS (High Efficiency, Low Overhead) - REPLACES VMess as Primary
             {
-                "type": "vmess",
-                "tag": "vmess-in",
+                "type": "vless",
+                "tag": "vless-in",
                 "listen": "::",
                 "listen_port": base_port + 3,
-                "users": [{"uuid": vmess_uuid, "alterId": 0}]
+                "users": [{"uuid": vmess_uuid, "flow": ""}]
             },
-            # 5. Trojan
+            # 5. Trojan (HTTPS Camouflage, Stability)
             {
                 "type": "trojan",
                 "tag": "trojan-in",
@@ -79,7 +82,12 @@ def main():
             }
         ],
         "outbounds": [
-            {"type": "direct", "tag": "direct"},
+            {
+                "type": "direct", 
+                "tag": "direct",
+                # Stealth: Use system stack to mimic standard OS traffic
+                "domain_strategy": "ipv4_only" 
+            },
             {"type": "block", "tag": "block"}
         ]
     }

@@ -8,12 +8,17 @@
 - **原因**: 经过分析，Sing-box 提供最佳的内存效率（Go 1.20+ 优化），且单一二进制原生支持所有所需协议（SOCKS5, HTTP, SS, VMess, Trojan），非常适合资源受限的 VPS 环境。
 - **妥协**: 暂无明显妥协，功能完全覆盖。
 
-### [D-002] 容器编排方式
-- **选项**: Docker Compose vs Podman Kube Play vs Podman Quadlet
-- **决策**: Podman Quadlet
-- **原因**: User 要求 "Podman 原生且省内存"。Quadlet 是 Systemd 生成器，无额外守护进程开销，是最原生的方式。
-
-## 灵光一闪 (Insights)
+### [D-002] 协议栈升级 (Protocol Stack Upgrade)
+- **变更**: 引入 VLESS，保留 Trojan/Shadowsocks，移除/降级 VMess。
+- **原因**: 
+  - **Stealth (隐匿性)**: 配置 `stack: system` 使用宿主机网络栈，避免 User-space 网络栈指纹被目标网站识别。
+  - **Efficiency (流量/内存)**: VLESS 协议无额外加密开销（依赖底层 TLS/传输层），比 VMess 更省流量和 CPU。
+  - **Stability (稳定性)**: Trojan 模拟 HTTPS 流量，穿越防火墙能力强且稳定。
+- **最终组合**:
+  1. **VLESS** (主力，极致精简)
+  2. **Trojan** (伪装，高稳定性)
+  3. **Shadowsocks** (兼容，备用)
+  4. **HTTP/SOCKS5** (本地/调试用)
 - *暂无*
 
 ## 脏代码记录 (Dirty Code Log)
