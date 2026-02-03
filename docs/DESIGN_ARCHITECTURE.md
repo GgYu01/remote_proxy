@@ -34,3 +34,6 @@ User Client -> [Protocol Port] -> Podman Container -> Sing-box Inbound -> Outbou
 ## 设计模式
 - **Template Pattern**: 配置生成脚本使用模板模式。
 - **Sidecar (Optional)**: 如果需要额外日志收集 (暂不启用以省资源)。
+- **Stealth by Default (默认隐匿)**:
+  - **Inbound**: 使用 Reality 模拟合法 TLS 流量 (Dest: Microsoft/Apple)。
+  - **Outbound**: 强制 `ipv4_only` 和 `system` 栈，减少被动指纹暴露。

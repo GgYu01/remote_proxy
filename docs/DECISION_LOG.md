@@ -19,7 +19,14 @@
   2. **Trojan** (伪装，高稳定性)
   3. **Shadowsocks** (兼容，备用)
   4. **HTTP/SOCKS5** (本地/调试用)
-- *暂无*
+
+### [D-003] 隐匿性终极策略 (Ultimate Stealth Strategy)
+- **协议层**: VLESS + Reality (Inbound)
+  - *Rationale*: 消除 SNI 暴露，抵抗主动探测。
+- **传输层**: System Stack (Outbound)
+  - *Rationale*: 避免 User-space TCP 协议栈指纹。
+- **网络层**: IPv4 Preferred
+  - *Rationale*: 规避 IPv6 Datacenter 标记。
 
 ## 脏代码记录 (Dirty Code Log)
 - *暂无*

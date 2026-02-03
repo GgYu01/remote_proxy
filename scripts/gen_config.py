@@ -20,7 +20,8 @@ def main():
     base_port = int(config.get('BASE_PORT', 10000))
     user = config.get('PROXY_USER', 'admin')
     password = config.get('PROXY_PASS', 'password')
-    vmess_uuid = config.get('VMESS_UUID') or str(uuid.uuid4())
+    # Backward compatibility: Check VLESS_UUID first, then VMess
+    vmess_uuid = config.get('VLESS_UUID') or config.get('VMESS_UUID') or str(uuid.uuid4())
     ss_method = config.get('SS_METHOD', 'chacha20-ietf-poly1305')
     ss_pass = config.get('SS_PASSWORD', 'secret')
     
