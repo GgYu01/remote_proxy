@@ -58,14 +58,16 @@
   - 补全 `docs/` 下的所有文档。
 
 ### Phase 5: 严格审计 (Strict Audit) [NEW]
-- [ ] **编写 `scripts/audit_project.py`**:
+- [x] **编写 `scripts/audit_project.py`**:
   - **完整性检查**: 确保所有 `scripts/` 下的文件都存在且可执行。
   - **语法检查**: 对 Shell 脚本执行 `bash -n`，对 Python 脚本执行 `python -m py_compile`。
   - **文档同步检查**: 检查 `docs/` 文件数量是否符合预期。
   - **配置检查**: 验证 `singbox.json` (如果存在) 或生成的 JSON 结构是否合法。
+- [x] **逻辑仿真测试**: 编写 `tests/simulate_install.sh` 模拟完整安装流程，验证脚本逻辑。
 
 ## 3. 防“偷懒”检查点 (Anti-Lazy Checkpoints)
-必须通过 `python3 scripts/audit_project.py` 返回 Exit Code 0 才能标记任务结束。
+- [x] 通过 `python3 scripts/audit_project.py`。
+- [x] 通过 `./tests/simulate_install.sh`。
 
 ## 4. 风险预案 (Risk Management)
 
