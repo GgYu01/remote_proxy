@@ -36,6 +36,15 @@ echo "🚀 Step 3: Deploying Service..."
 
 echo "🎉 Installation Complete!"
 echo "--------------------------------------------------------"
+if [ "$(id -u)" -eq 0 ]; then
+    echo "Check service status: systemctl status remote-proxy"
+    echo "View logs:            journalctl -u remote-proxy -f"
+else
+    echo "Check service status: systemctl --user status remote-proxy"
+    echo "View logs:            journalctl --user -u remote-proxy -f"
+fi
+echo "========================================================"
+echo "--------------------------------------------------------"
 echo "Check service status: systemctl --user status remote-proxy"
 echo "View logs:            journalctl --user -u remote-proxy -f"
 echo "========================================================"

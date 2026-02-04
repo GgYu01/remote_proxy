@@ -6,6 +6,22 @@ set -e
 # Description: Deploys the service using Podman Quadlet
 # ==============================================================================
 
+IS_ROOT=0
+if [ "$(id -u)" -eq 0 ]; then
+    IS_ROOT=1
+fi
+
+# Define paths and commands based on user
+if [ "$IS_ROOT" -eq 1 ]; then
+    SYSTEMD_DIR="/etc/containers/systemd"
+    SYSTEMCTL_CMD="systemctl"
+    echo "ℹ️  Running as ROOT. Using system-wide Quadlet dir: $SYSTEMD_DIR"
+else
+    SYSTEMD_DIR="$HOME/.config/containers/systemd"
+    SYSTEMCTL_CMD="systemctl --user"
+    echo "ℹ️  Running as USER. Using user-scope Quadlet dir: $SYSTEMD_DIR"
+fi
+
 # Load config
 if [ -f config.env ]; then
     export $(grep -v '^#' config.env | xargs)
@@ -21,7 +37,6 @@ if [ ! -f singbox.json ]; then
 fi
 
 # Create Quadlet directory
-SYSTEMD_DIR="$HOME/.config/containers/systemd"
 mkdir -p "$SYSTEMD_DIR"
 
 # Generate .container file
@@ -53,14 +68,17 @@ EOF
 
 # Reload Systemd
 echo ">>> Reloading Systemd..."
-systemctl --user daemon-reload
+$SYSTEMCTL_CMD daemon-reload
 
 # Start Service
 echo ">>> Starting Service..."
-systemctl --user enable --now remote-proxy
+$SYSTEMCTL_CMD enable --now remote-proxy
 
 # Check status
 sleep 2
-systemctl --user status remote-proxy --no-pager
+$SYSTEMCTL_CMD status remote-proxy --no-pager
 
-echo "✅ Deployment initiated. Check logs with: journalctl --user -u remote-proxy -f"
+echo "✅ Deployment initiated. Check logs with: journalctl -u remote-proxy -f"
+if [ "$IS_ROOT" -eq 0 ]; then
+    echo "   (User mode logs: journalctl --user -u remote-proxy -f)"
+fi
