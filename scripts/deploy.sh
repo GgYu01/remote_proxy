@@ -39,8 +39,11 @@ fi
 # Create Quadlet directory
 mkdir -p "$SYSTEMD_DIR"
 
+# Clean up old file to force regeneration
+rm -f "$SYSTEMD_DIR/remote-proxy.container"
+
 # Generate .container file
-echo ">>> Generating Quadlet file..."
+echo ">>> Generating Quadlet file at $SYSTEMD_DIR/remote-proxy.container"
 cat > "$SYSTEMD_DIR/remote-proxy.container" <<EOF
 [Unit]
 Description=Remote Proxy Service (Sing-box)
@@ -66,13 +69,41 @@ Restart=always
 TimeoutStartSec=900
 EOF
 
+# Debug: Show content
+# cat "$SYSTEMD_DIR/remote-proxy.container"
+
 # Reload Systemd
 echo ">>> Reloading Systemd..."
 $SYSTEMCTL_CMD daemon-reload
 
+# Verification Loop (Wait for generator)
+echo ">>> Verifying Service Generation..."
+MAX_CHECKS=5
+for ((i=1; i<=MAX_CHECKS; i++)); do
+    if $SYSTEMCTL_CMD list-unit-files remote-proxy.service | grep -q "remote-proxy.service"; then
+        echo "✅ Service detected."
+        break
+    fi
+    echo "   Waiting for generator... ($i/$MAX_CHECKS)"
+    sleep 1
+    # Try forcing generator if root
+    if [ "$i" -eq 3 ] && [ "$IS_ROOT" -eq 1 ] && [ -x /usr/lib/systemd/system-generators/podman-system-generator ]; then
+         echo "   (Attempting manual generator trigger)"
+         /usr/lib/systemd/system-generators/podman-system-generator /run/systemd/generator /run/systemd/generator.early /run/systemd/generator.late
+         $SYSTEMCTL_CMD daemon-reload
+    fi
+done
+
 # Start Service
 echo ">>> Starting Service..."
-$SYSTEMCTL_CMD enable --now remote-proxy
+if ! $SYSTEMCTL_CMD enable --now remote-proxy; then
+    echo "❌ Failed to enable service. Debugging info:"
+    echo "1. Quadlet File Content:"
+    cat "$SYSTEMD_DIR/remote-proxy.container"
+    echo "2. Generator Logs:"
+    journalctl -t podman-system-generator -n 20 --no-pager
+    exit 1
+fi
 
 # Check status
 sleep 2
