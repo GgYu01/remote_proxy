@@ -10,10 +10,19 @@ def run_cmd(ssh, cmd):
     print(f">>> Executing: {cmd}")
     stdin, stdout, stderr = ssh.exec_command(cmd)
     exit_status = stdout.channel.recv_exit_status()
-    out = stdout.read().decode().strip()
-    err = stderr.read().decode().strip()
-    if out: print(f"STDOUT:\n{out}")
-    if err: print(f"STDERR:\n{err}")
+    out = stdout.read().decode('utf-8', errors='ignore').strip()
+    err = stderr.read().decode('utf-8', errors='ignore').strip()
+    # Use ASCII logging to avoid Windows console crash
+    if out: 
+        try:
+            print(f"STDOUT:\n{out}")
+        except UnicodeEncodeError:
+            print(f"STDOUT (ascii):\n{out.encode('ascii', 'ignore').decode()}")
+    if err: 
+        try:
+            print(f"STDERR:\n{err}")
+        except UnicodeEncodeError:
+            print(f"STDERR (ascii):\n{err.encode('ascii', 'ignore').decode()}")
     return exit_status, out, err
 
 def main():

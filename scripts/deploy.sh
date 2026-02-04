@@ -30,6 +30,16 @@ fi
 BASE_PORT=${BASE_PORT:-10000}
 MEMORY_LIMIT=${MEMORY_LIMIT:-256M}
 
+# Enforce minimum memory (Sing-box needs ~20M+)
+# Use regex to extract number. 
+if [[ "$MEMORY_LIMIT" =~ ([0-9]+)M ]]; then
+    MEM_VAL="${BASH_REMATCH[1]}"
+    if [ "$MEM_VAL" -lt 20 ]; then
+        echo "⚠️  Memory limit $MEMORY_LIMIT is too low. Bumping to 64M."
+        MEMORY_LIMIT="64M"
+    fi
+fi
+
 # Ensure config exists
 if [ ! -f singbox.json ]; then
     echo "⚠️ singbox.json not found. Running generator..."
@@ -60,13 +70,6 @@ PublishPort=$((${BASE_PORT}+2)):$((${BASE_PORT}+2))
 PublishPort=$((${BASE_PORT}+3)):$((${BASE_PORT}+3))
 PublishPort=$((${BASE_PORT}+4)):$((${BASE_PORT}+4))
 # Resources
-# Enforce minimum memory (Sing-box needs ~20M+)
-if [[ "$MEMORY_LIMIT" =~ ([0-9]+)M ]]; then
-    if [ "${BASH_REMATCH[1]}" -lt 20 ]; then
-        echo "⚠️  Memory limit $MEMORY_LIMIT is too low. Bumping to 64M."
-        MEMORY_LIMIT="64M"
-    fi
-fi
 Memory=${MEMORY_LIMIT}
 # Command
 Exec=run -c /etc/sing-box/config.json
