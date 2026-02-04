@@ -60,6 +60,13 @@ PublishPort=$((${BASE_PORT}+2)):$((${BASE_PORT}+2))
 PublishPort=$((${BASE_PORT}+3)):$((${BASE_PORT}+3))
 PublishPort=$((${BASE_PORT}+4)):$((${BASE_PORT}+4))
 # Resources
+# Enforce minimum memory (Sing-box needs ~20M+)
+if [[ "$MEMORY_LIMIT" =~ ([0-9]+)M ]]; then
+    if [ "${BASH_REMATCH[1]}" -lt 20 ]; then
+        echo "⚠️  Memory limit $MEMORY_LIMIT is too low. Bumping to 64M."
+        MEMORY_LIMIT="64M"
+    fi
+fi
 Memory=${MEMORY_LIMIT}
 # Command
 Exec=run -c /etc/sing-box/config.json
@@ -69,30 +76,61 @@ Restart=always
 TimeoutStartSec=900
 EOF
 
-# Debug: Show content
-# cat "$SYSTEMD_DIR/remote-proxy.container"
-
 # Reload Systemd
 echo ">>> Reloading Systemd..."
 $SYSTEMCTL_CMD daemon-reload
 
 # Verification Loop (Wait for generator)
 echo ">>> Verifying Service Generation..."
+GENERATED=0
 MAX_CHECKS=5
 for ((i=1; i<=MAX_CHECKS; i++)); do
     if $SYSTEMCTL_CMD list-unit-files remote-proxy.service | grep -q "remote-proxy.service"; then
-        echo "✅ Service detected."
+        echo "✅ Service detected (Quadlet)."
+        GENERATED=1
         break
     fi
     echo "   Waiting for generator... ($i/$MAX_CHECKS)"
     sleep 1
-    # Try forcing generator if root
-    if [ "$i" -eq 3 ] && [ "$IS_ROOT" -eq 1 ] && [ -x /usr/lib/systemd/system-generators/podman-system-generator ]; then
-         echo "   (Attempting manual generator trigger)"
-         /usr/lib/systemd/system-generators/podman-system-generator /run/systemd/generator /run/systemd/generator.early /run/systemd/generator.late
-         $SYSTEMCTL_CMD daemon-reload
-    fi
 done
+
+# Fallback to Legacy Systemd if Quadlet fails
+if [ "$GENERATED" -eq 0 ]; then
+    echo "⚠️  Quadlet generation failed. Falling back to standard Systemd Unit."
+    
+    # Define fallback path
+    if [ "$IS_ROOT" -eq 1 ]; then
+        FALLBACK_DIR="/etc/systemd/system"
+    else
+        FALLBACK_DIR="$HOME/.config/systemd/user"
+        mkdir -p "$FALLBACK_DIR"
+    fi
+    
+    cat > "$FALLBACK_DIR/remote-proxy.service" <<EOF
+[Unit]
+Description=Remote Proxy Service (Fallback)
+After=network-online.target
+
+[Service]
+Restart=always
+ExecStart=$(command -v podman) run --name remote-proxy --replace --rm \\
+  -v $(pwd)/singbox.json:/etc/sing-box/config.json:Z \\
+  -p ${BASE_PORT}:${BASE_PORT} \\
+  -p $((${BASE_PORT}+1)):$((${BASE_PORT}+1)) \\
+  -p $((${BASE_PORT}+2)):$((${BASE_PORT}+2)) \\
+  -p $((${BASE_PORT}+3)):$((${BASE_PORT}+3)) \\
+  -p $((${BASE_PORT}+4)):$((${BASE_PORT}+4)) \\
+  --memory ${MEMORY_LIMIT} \\
+  ghcr.io/sagernet/sing-box:latest run -c /etc/sing-box/config.json
+ExecStop=$(command -v podman) stop remote-proxy
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    
+    echo ">>> Reloading Systemd (Fallback)..."
+    $SYSTEMCTL_CMD daemon-reload
+fi
 
 # Start Service
 echo ">>> Starting Service..."
