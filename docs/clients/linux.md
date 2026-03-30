@@ -1,27 +1,27 @@
-# Linux Client Guide
+# Linux 客户端指南
 
-## Common Client Paths
+## 常见接入方式
 
-- `sing-box` CLI or service
-- application-level SOCKS5 / HTTP proxy settings
-- desktop network proxy settings for browser-first use
+- `sing-box` CLI 或 systemd 服务
+- 应用级 SOCKS5 / HTTP 代理设置
+- 面向浏览器优先场景的桌面网络代理设置
 
-## Recommended Path
+## 推荐路径
 
-Prefer VLESS + Reality when the client stack supports it.
+只要客户端栈支持，优先使用 VLESS + Reality。
 
-For debugging or lightweight CLI use, SOCKS5 and HTTP remain available.
+如果只是临时调试，或只想给轻量 CLI 工具走代理，也可以继续使用 SOCKS5 / HTTP。
 
-## Linux CLI Examples
+## Linux CLI 示例
 
-Browser or shell tooling via SOCKS5:
+通过 SOCKS5 让浏览器或命令行工具走代理：
 
 ```bash
 export ALL_PROXY="socks5://USER:PASS@SERVER_IP:BASE_PORT"
 curl https://icanhazip.com
 ```
 
-Browser or shell tooling via HTTP:
+通过 HTTP 让浏览器或命令行工具走代理：
 
 ```bash
 export HTTP_PROXY="http://USER:PASS@SERVER_IP:BASE_PORT_PLUS_1"
@@ -29,4 +29,4 @@ export HTTPS_PROXY="$HTTP_PROXY"
 curl https://icanhazip.com
 ```
 
-Replace placeholders with your actual server values. Do not commit live credentials into shell profiles.
+请将示例中的占位值替换为真实服务器参数，但不要把线上凭据写进可提交的 shell 配置文件。

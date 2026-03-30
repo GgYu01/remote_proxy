@@ -1,46 +1,46 @@
-# Infra-Core / Ubuntu.online Integration
+# Infra-Core / Ubuntu.online 集成指南
 
-## Scope
+## 适用范围
 
-Use this guide when the host already runs the `/mnt/hdo/infra-core` Docker Compose estate.
+当目标主机已经运行 `/mnt/hdo/infra-core` 这套 Docker Compose 体系时，使用本指南。
 
-This is a documented integration path, not a direct `install.sh` target.
+这是一条“集成路径”，不是 `install.sh` 的直接执行目标。
 
-## Observed Layout
+## 当前已观察到的布局
 
-On the current `Ubuntu.online` host, the proxy-related estate includes:
+在当前 `Ubuntu.online` 主机上，和代理相关的现有内容包括：
 
 - `/mnt/hdo/infra-core/services/proxied/vless-sidecar/docker-compose.yml`
 - `/mnt/hdo/infra-core/services/proxied/vless-sidecar/README.md`
 - `/mnt/hdo/infra-core/docs/PROXY_GUIDE.md`
-- a running container named `infra_vless_sidecar`
+- 一个正在运行的容器 `infra_vless_sidecar`
 
-That means the host already has a compose-oriented proxy topology.
+这说明该主机已经有一套基于 compose 的代理拓扑。
 
-## Recommended Integration Strategy
+## 推荐集成策略
 
-1. Keep `remote_proxy` as the source of proxy design, secret rules, and client guidance.
-2. Keep `infra-core` as the owner of Compose wiring, shared networks, and sidecar lifecycle.
-3. Port only the relevant sing-box config model and documentation into the sidecar deployment path.
-4. Do not overwrite `infra-core` service definitions with the standalone Podman installer.
+1. 让 `remote_proxy` 继续作为代理设计、密钥规则与客户端说明的事实来源。
+2. 让 `infra-core` 继续拥有 compose 编排、共享网络和 sidecar 生命周期。
+3. 只把与 sing-box 配置模型直接相关的内容移植到 sidecar 路径。
+4. 不要用独立 VPS 的 Podman 安装器覆盖 `infra-core` 现有服务定义。
 
-## Integration Checklist
+## 集成检查清单
 
-1. Inspect `services/proxied/vless-sidecar/docker-compose.yml`.
-2. Inspect `services/proxied/vless-sidecar/README.md`.
-3. Compare its image tag, mounted config, and exposed ports with this repo's standalone baseline.
-4. Align secret names and client-facing connection outputs.
-5. Update `infra-core` docs only after the standalone baseline is stable.
+1. 检查 `services/proxied/vless-sidecar/docker-compose.yml`。
+2. 检查 `services/proxied/vless-sidecar/README.md`。
+3. 对比它的镜像标签、挂载配置和暴露端口，与本仓库 standalone 基线是否一致。
+4. 对齐密钥字段命名以及面向客户端的连接信息输出。
+5. 在 standalone 基线稳定后，再回写 `infra-core` 侧文档。
 
-## Expected Deliverables For Infra-Core
+## `infra-core` 侧应交付的内容
 
-- a compose-side example aligned to the standalone sing-box config;
-- secret mapping guidance;
-- restart / verification commands specific to Docker Compose;
-- client import instructions matching Android / Windows / Linux docs from this repo.
+- 一份与 standalone sing-box 配置模型对齐的 compose 示例；
+- 一份密钥映射说明；
+- 一组只针对 Docker Compose 的重启与验证命令；
+- 与本仓库 Android / Windows / Linux 客户端文档一致的导入说明。
 
-## Do Not
+## 明确禁止
 
-- do not run `./install.sh` inside `/mnt/hdo/infra-core`;
-- do not assume Podman Quadlet behavior inside the Compose estate;
-- do not mix public README secrets with infra-core runtime secrets.
+- 不要在 `/mnt/hdo/infra-core` 中直接执行 `./install.sh`；
+- 不要假设 compose 环境会具备 Podman Quadlet 的行为；
+- 不要把 README 中的占位密钥或公开文档示例，混入 `infra-core` 的真实运行时密钥。

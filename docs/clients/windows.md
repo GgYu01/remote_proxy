@@ -1,29 +1,29 @@
-# Windows Client Guide
+# Windows 客户端指南
 
-## Recommended Clients
+## 推荐客户端
 
 - `sing-box for Windows`
-- `Clash Meta` compatible clients only if you intentionally maintain a converted config
+- 只有在你明确维护一份转换配置时，才建议使用兼容 `Clash Meta` 的客户端
 
-## Preferred Path
+## 推荐路径
 
-Use the generated VLESS + Reality link when possible.
+优先使用生成出的 VLESS + Reality 链接。
 
-## Windows Checklist
+## Windows 使用检查清单
 
-1. Import the VLESS link from `./scripts/show_info.sh`.
-2. Confirm the server points to the VPS public IP.
-3. Confirm `sni`, `pbk`, and `sid` match the rendered config.
-4. Decide whether you want browser-only usage or system-wide tunnel mode.
+1. 从 `./scripts/show_info.sh` 输出中导入 VLESS 链接。
+2. 确认服务器地址指向 VPS 公网 IP。
+3. 确认 `sni`、`pbk`、`sid` 与渲染后的配置一致。
+4. 按需求决定只给浏览器走代理，还是启用系统级隧道模式。
 
-## Fallback Paths
+## 回退路径
 
-- SOCKS5: `BASE_PORT`
-- HTTP: `BASE_PORT + 1`
+- SOCKS5：`BASE_PORT`
+- HTTP：`BASE_PORT + 1`
 
-Use those only for debugging or clients that do not support Reality.
+这两个入口只建议用于调试，或者客户端本身不支持 Reality 的场景。
 
-## Verification
+## 验证方式
 
-- Check browser egress IP.
-- Check one CLI tool through the proxy if you need developer tooling coverage.
+- 检查浏览器的出口 IP。
+- 如果你还要覆盖开发工具，再选一个 CLI 工具通过代理验证一次。

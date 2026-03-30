@@ -1,6 +1,6 @@
-# Troubleshooting
+# 故障排查
 
-## First Checks
+## 首轮检查
 
 ```bash
 systemctl status remote-proxy
@@ -9,42 +9,42 @@ journalctl -u remote-proxy -n 100 --no-pager
 ss -tulpn | grep -E '1000[0-4]'
 ```
 
-## Known Failure Modes
+## 已知故障模式
 
-### Service starts on one host and fails on another
+### 一台主机能启动，另一台主机启动失败
 
-Compare:
+重点比对：
 
-- pinned image tag;
-- generated unit content;
-- memory limit;
-- compatibility env flags;
-- rendered `singbox.json`.
+- 固定镜像标签；
+- 生成出的 unit 内容；
+- 内存限制；
+- 兼容性环境变量；
+- 渲染后的 `singbox.json`。
 
-### Ports are not listening
+### 端口没有监听
 
-- verify the service is active;
-- verify the container actually started;
-- inspect journal output for sing-box startup errors.
+- 先确认服务确实处于 active；
+- 再确认容器确实已启动；
+- 查看 journal 是否有 sing-box 启动错误。
 
-### HTTP / SOCKS checks fail
+### HTTP / SOCKS 验证失败
 
-- run `./scripts/verify.sh`;
-- confirm credentials in `config.env`;
-- confirm outbound internet access from the VPS.
+- 运行 `./scripts/verify.sh`；
+- 核对 `config.env` 中的凭据；
+- 确认 VPS 具备正常的出站联网能力。
 
-### sing-box deprecated config errors
+### sing-box 过时配置兼容报错
 
-If journal output asks for deprecated compatibility flags, confirm the generated unit contains:
+如果 journal 明确提示需要兼容性环境变量，确认生成出的服务定义包含：
 
 - `ENABLE_DEPRECATED_LEGACY_DNS_SERVERS=true`
 - `ENABLE_DEPRECATED_MISSING_DOMAIN_RESOLVER=true`
 - `ENABLE_DEPRECATED_LEGACY_DOMAIN_STRATEGY_OPTIONS=true`
 
-### Public probes on HTTP port
+### HTTP 端口遭遇公网探测
 
-If you see anonymous probes or malformed TLS on the HTTP port:
+如果在 HTTP 端口日志中看到匿名探测或异常 TLS 流量：
 
-- rotate credentials;
-- reduce exposure where possible;
-- prefer client usage through VLESS + Reality for normal operation.
+- 立即轮换凭据；
+- 尽量缩小公网暴露面；
+- 日常使用优先走 VLESS + Reality，而不是长期暴露 HTTP 调试入口。
