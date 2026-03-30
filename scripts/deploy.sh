@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # ==============================================================================
 # Script Name: deploy.sh
@@ -11,27 +11,30 @@ if [ "$(id -u)" -eq 0 ]; then
     IS_ROOT=1
 fi
 
-# Define paths and commands based on user
 if [ "$IS_ROOT" -eq 1 ]; then
     SYSTEMD_DIR="/etc/containers/systemd"
     SYSTEMCTL_CMD="systemctl"
+    WANTED_BY_TARGET="multi-user.target"
     echo "ℹ️  Running as ROOT. Using system-wide Quadlet dir: $SYSTEMD_DIR"
 else
     SYSTEMD_DIR="$HOME/.config/containers/systemd"
     SYSTEMCTL_CMD="systemctl --user"
+    WANTED_BY_TARGET="default.target"
     echo "ℹ️  Running as USER. Using user-scope Quadlet dir: $SYSTEMD_DIR"
 fi
 
-# Load config
 if [ -f config.env ]; then
-    export $(grep -v '^#' config.env | xargs)
+    set -a
+    # shellcheck disable=SC1091
+    . ./config.env
+    set +a
 fi
 
 BASE_PORT=${BASE_PORT:-10000}
 MEMORY_LIMIT=${MEMORY_LIMIT:-256M}
+SING_BOX_IMAGE=${SING_BOX_IMAGE:-ghcr.io/sagernet/sing-box:v1.13.2}
+ENABLE_DEPRECATED_SING_BOX_FLAGS=${ENABLE_DEPRECATED_SING_BOX_FLAGS:-true}
 
-# Enforce minimum memory (Sing-box needs ~20M+)
-# Use regex to extract number. 
 if [[ "$MEMORY_LIMIT" =~ ([0-9]+)M ]]; then
     MEM_VAL="${BASH_REMATCH[1]}"
     if [ "$MEM_VAL" -lt 20 ]; then
@@ -40,19 +43,31 @@ if [[ "$MEMORY_LIMIT" =~ ([0-9]+)M ]]; then
     fi
 fi
 
-# Ensure config exists
 if [ ! -f singbox.json ]; then
     echo "⚠️ singbox.json not found. Running generator..."
     python3 scripts/gen_config.py
 fi
 
-# Create Quadlet directory
-mkdir -p "$SYSTEMD_DIR"
+QUADLET_ENV_LINES=""
+FALLBACK_ENV_LINES=""
+if [ "$ENABLE_DEPRECATED_SING_BOX_FLAGS" = "true" ]; then
+    QUADLET_ENV_LINES=$(cat <<'EOF'
+Environment=ENABLE_DEPRECATED_LEGACY_DNS_SERVERS=true
+Environment=ENABLE_DEPRECATED_MISSING_DOMAIN_RESOLVER=true
+Environment=ENABLE_DEPRECATED_LEGACY_DOMAIN_STRATEGY_OPTIONS=true
+EOF
+)
+    FALLBACK_ENV_LINES=$(cat <<'EOF'
+  -e ENABLE_DEPRECATED_LEGACY_DNS_SERVERS=true \
+  -e ENABLE_DEPRECATED_MISSING_DOMAIN_RESOLVER=true \
+  -e ENABLE_DEPRECATED_LEGACY_DOMAIN_STRATEGY_OPTIONS=true \
+EOF
+)
+fi
 
-# Clean up old file to force regeneration
+mkdir -p "$SYSTEMD_DIR"
 rm -f "$SYSTEMD_DIR/remote-proxy.container"
 
-# Generate .container file
 echo ">>> Generating Quadlet file at $SYSTEMD_DIR/remote-proxy.container"
 cat > "$SYSTEMD_DIR/remote-proxy.container" <<EOF
 [Unit]
@@ -60,18 +75,16 @@ Description=Remote Proxy Service (Sing-box)
 After=network-online.target
 
 [Container]
-Image=ghcr.io/sagernet/sing-box:latest
+Image=${SING_BOX_IMAGE}
 ContainerName=remote-proxy
 Volume=$(pwd)/singbox.json:/etc/sing-box/config.json:Z
-# Expose ports (Base to Base+4)
+${QUADLET_ENV_LINES}
 PublishPort=${BASE_PORT}:${BASE_PORT}
 PublishPort=$((${BASE_PORT}+1)):$((${BASE_PORT}+1))
 PublishPort=$((${BASE_PORT}+2)):$((${BASE_PORT}+2))
 PublishPort=$((${BASE_PORT}+3)):$((${BASE_PORT}+3))
 PublishPort=$((${BASE_PORT}+4)):$((${BASE_PORT}+4))
-# Resources
 Memory=${MEMORY_LIMIT}
-# Command
 Exec=run -c /etc/sing-box/config.json
 
 [Service]
@@ -79,11 +92,9 @@ Restart=always
 TimeoutStartSec=900
 EOF
 
-# Reload Systemd
 echo ">>> Reloading Systemd..."
 $SYSTEMCTL_CMD daemon-reload
 
-# Verification Loop (Wait for generator)
 echo ">>> Verifying Service Generation..."
 GENERATED=0
 MAX_CHECKS=5
@@ -97,18 +108,16 @@ for ((i=1; i<=MAX_CHECKS; i++)); do
     sleep 1
 done
 
-# Fallback to Legacy Systemd if Quadlet fails
 if [ "$GENERATED" -eq 0 ]; then
     echo "⚠️  Quadlet generation failed. Falling back to standard Systemd Unit."
-    
-    # Define fallback path
+
     if [ "$IS_ROOT" -eq 1 ]; then
         FALLBACK_DIR="/etc/systemd/system"
     else
         FALLBACK_DIR="$HOME/.config/systemd/user"
         mkdir -p "$FALLBACK_DIR"
     fi
-    
+
     cat > "$FALLBACK_DIR/remote-proxy.service" <<EOF
 [Unit]
 Description=Remote Proxy Service (Fallback)
@@ -117,6 +126,7 @@ After=network-online.target
 [Service]
 Restart=always
 ExecStart=$(command -v podman) run --name remote-proxy --replace --rm \\
+${FALLBACK_ENV_LINES}
   -v $(pwd)/singbox.json:/etc/sing-box/config.json:Z \\
   -p ${BASE_PORT}:${BASE_PORT} \\
   -p $((${BASE_PORT}+1)):$((${BASE_PORT}+1)) \\
@@ -124,18 +134,17 @@ ExecStart=$(command -v podman) run --name remote-proxy --replace --rm \\
   -p $((${BASE_PORT}+3)):$((${BASE_PORT}+3)) \\
   -p $((${BASE_PORT}+4)):$((${BASE_PORT}+4)) \\
   --memory ${MEMORY_LIMIT} \\
-  ghcr.io/sagernet/sing-box:latest run -c /etc/sing-box/config.json
+  ${SING_BOX_IMAGE} run -c /etc/sing-box/config.json
 ExecStop=$(command -v podman) stop remote-proxy
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=${WANTED_BY_TARGET}
 EOF
-    
+
     echo ">>> Reloading Systemd (Fallback)..."
     $SYSTEMCTL_CMD daemon-reload
 fi
 
-# Start Service
 echo ">>> Starting Service..."
 if ! $SYSTEMCTL_CMD enable --now remote-proxy; then
     echo "❌ Failed to enable service. Debugging info:"
@@ -146,7 +155,6 @@ if ! $SYSTEMCTL_CMD enable --now remote-proxy; then
     exit 1
 fi
 
-# Check status
 sleep 2
 $SYSTEMCTL_CMD status remote-proxy --no-pager
 

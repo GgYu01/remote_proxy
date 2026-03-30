@@ -2,6 +2,7 @@
 import os
 import sys
 import subprocess
+from shutil import which
 
 # ==============================================================================
 # Script Name: audit_project.py
@@ -19,10 +20,37 @@ REQUIRED_FILES = [
     "docs/REQUIREMENTS_POOL.md",
     "docs/DESIGN_ARCHITECTURE.md",
     "docs/HANDOVER_MANUAL.md",
+    "docs/deploy/standalone-vps.md",
+    "docs/deploy/infra-core-ubuntu-online.md",
+    "docs/clients/android.md",
+    "docs/clients/windows.md",
+    "docs/clients/linux.md",
+    "docs/security/secrets-and-rotation.md",
+    "docs/ops/troubleshooting.md",
+    "docs/ops/host-baselines.md",
     "docs/DECISION_LOG.md",
     "README.md",
-    "PLAN.md"
+    "PLAN.md",
+    "docs/plans/2026-03-30-remote-proxy-reliability-design.md",
+    "docs/plans/2026-03-30-remote-proxy-reliability.md",
 ]
+
+BASH_CANDIDATES = [
+    os.environ.get("REMOTE_PROXY_BASH"),
+    r"C:\Program Files\Git\bin\bash.exe",
+    "bash",
+]
+
+
+def resolve_bash():
+    for candidate in BASH_CANDIDATES:
+        if not candidate:
+            continue
+        if os.path.isabs(candidate) and os.path.exists(candidate):
+            return candidate
+        if which(candidate):
+            return candidate
+    return None
 
 def log_pass(msg):
     print(f"[PASS] {msg}")
@@ -61,9 +89,12 @@ def check_syntax():
     all_pass = True
     # Bash syntax
     bash_scripts = [f for f in REQUIRED_FILES if f.endswith('.sh')]
+    bash_cmd = resolve_bash()
     for s in bash_scripts:
         try:
-            subprocess.run(['bash', '-n', s], check=True, capture_output=True)
+            if not bash_cmd:
+                raise FileNotFoundError("bash command not found")
+            subprocess.run([bash_cmd, '-n', s], check=True, capture_output=True)
             log_pass(f"Bash syntax OK: {s}")
         except subprocess.CalledProcessError as e:
             log_fail(f"Bash syntax error in {s}: {e.stderr.decode()}")

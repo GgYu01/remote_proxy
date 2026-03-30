@@ -1,39 +1,27 @@
 # 系统架构与设计 (Design & Architecture)
 
-## 核心理念 (Core Philosophy)
-- **Unified Core (统一核心)**: 使用 Sing-box 或 Xray 单一进程处理多协议，极大降低内存开销。
-- **Native Podman (原生 Podman)**: 使用 Quadlet (.container files) 利用 Systemd 管理容器，移除 Docker Daemon 开销。
-- **Configuration as Code**: 所有配置通过模板生成，确保可复现性。
+当前有效架构以以下文档为准：
 
-## 架构图 (Architecture Diagram)
-*(待补充 Mermaid 图表)*
+- [总体设计](plans/2026-03-30-remote-proxy-reliability-design.md)
+- [Standalone VPS deployment](deploy/standalone-vps.md)
+- [Infra-core / Ubuntu.online integration](deploy/infra-core-ubuntu-online.md)
 
-## 脚本架构 (Script Architecture)
+## 核心理念
 
-### 1. 配置层 (Configuration Layer)
-- **`.env`**: 唯一的配置入口。
-  - 定义端口 (PORT_START)
-  - 定义 UUID/密码 (User credentials)
-  - 定义 Swap 大小 (SWAP_SIZE)
-  - 定义版本号 (SINGBOX_VERSION)
+- `config.env` 是 standalone 路径的唯一主配置入口。
+- `install.sh` 只负责 standalone VPS 自动化路径。
+- `infra-core` 是单独的 sidecar / compose 集成路径，不与 standalone 安装脚本混用。
+- 文档必须区分“脚本自动化边界”和“人工集成边界”。
 
-### 2. 执行层 (Execution Layer)
-- **`install.sh` (Master Script)**: 一键入口，按顺序调用子脚本。
-  - ├── `scripts/setup_env.sh`: 环境准备
-  - │   ├── 系统更新 (apt/yum update)
-  - │   ├── 工具安装 (podman, curl, jq)
-  - │   └── Swap 配置 (调用 manage_swap.sh)
-  - ├── `scripts/gen_config.py`: 配置生成
-  - │   └── 读取 .env -> 渲染 config_templates -> 生成 sing-box.json
-  - └── `scripts/deploy_service.sh`: 服务部署
-      └── 注册 Systemd Quadlet -> 启动服务
+## 运行时模型
 
-## 数据流向 (Data Flow)
-User Client -> [Protocol Port] -> Podman Container -> Sing-box Inbound -> Outbound (Direct) -> Internet
+客户端流量路径：
 
-## 设计模式
-- **Template Pattern**: 配置生成脚本使用模板模式。
-- **Sidecar (Optional)**: 如果需要额外日志收集 (暂不启用以省资源)。
-- **Stealth by Default (默认隐匿)**:
-  - **Inbound**: 使用 Reality 模拟合法 TLS 流量 (Dest: Microsoft/Apple)。
-  - **Outbound**: 强制 `ipv4_only` 和 `system` 栈，减少被动指纹暴露。
+`Client -> VPS public port -> sing-box inbound -> direct outbound -> Internet`
+
+## 受支持拓扑
+
+1. `standalone-vps`
+2. `infra-core-sidecar`
+
+旧文档中提到的历史命名不再作为当前基线。

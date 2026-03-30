@@ -5,7 +5,10 @@
 # ==============================================================================
 
 if [ -f config.env ]; then
-    export $(grep -v '^#' config.env | xargs)
+    set -a
+    # shellcheck disable=SC1091
+    . ./config.env
+    set +a
 fi
 
 # Function to URL encode

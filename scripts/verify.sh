@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e
-set -o pipefail
+set -euo pipefail
 
 # ==============================================================================
 # Script Name: verify.sh
@@ -9,7 +8,10 @@ set -o pipefail
 
 # Load config
 if [ -f config.env ]; then
-    export $(grep -v '^#' config.env | xargs)
+    set -a
+    # shellcheck disable=SC1091
+    . ./config.env
+    set +a
 fi
 
 BASE_PORT=${BASE_PORT:-10000}
@@ -50,13 +52,16 @@ test_proxy() {
     local pass=$PROXY_PASS
     
     local proxy_url=""
+    local display_target=""
     if [ "$proto" == "http" ]; then
         proxy_url="http://${user}:${pass}@127.0.0.1:${port}"
+        display_target="http://<redacted>@127.0.0.1:${port}"
     elif [ "$proto" == "socks5" ]; then
         proxy_url="socks5://${user}:${pass}@127.0.0.1:${port}"
+        display_target="socks5://<redacted>@127.0.0.1:${port}"
     fi
 
-    log_info "Testing $name connectivity via $proxy_url..."
+    log_info "Testing $name connectivity via $display_target..."
 
     local count=1
     while [ $count -le $RETRIES ]; do

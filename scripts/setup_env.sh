@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e
-set -o pipefail
+set -euo pipefail
 
 # ==============================================================================
 # Script Name: setup_env.sh
@@ -9,27 +8,35 @@ set -o pipefail
 
 # Load config if exists
 if [ -f config.env ]; then
-    export $(grep -v '^#' config.env | xargs)
+    set -a
+    # shellcheck disable=SC1091
+    . ./config.env
+    set +a
 fi
 
 SWAP_SIZE=${SWAP_SIZE_GB:-2}
+if [ "$(id -u)" -eq 0 ]; then
+    SUDO_CMD=""
+else
+    SUDO_CMD="sudo"
+fi
 
 echo ">>> [1/3] Updating System Packages..."
 # Check for apt (Debian/Ubuntu)
 if command -v apt-get &> /dev/null; then
-    sudo apt-get update -q
-    sudo apt-get upgrade -yq
-    sudo apt-get install -yq curl jq python3 podman uidmap slirp4netns systemd-container
+    ${SUDO_CMD} apt-get update -q
+    ${SUDO_CMD} apt-get upgrade -yq
+    ${SUDO_CMD} apt-get install -yq curl jq python3 podman uidmap slirp4netns systemd-container
 elif command -v yum &> /dev/null; then
-    sudo yum update -y
-    sudo yum install -y curl jq python3 podman
+    ${SUDO_CMD} yum update -y
+    ${SUDO_CMD} yum install -y curl jq python3 podman
 else
     echo "⚠️  Unsupported package manager. Please ensure Podman is installed manually."
 fi
 
 echo ">>> [2/3] Configuring Swap..."
 chmod +x scripts/manage_swap.sh
-sudo ./scripts/manage_swap.sh --size "$SWAP_SIZE"
+${SUDO_CMD} ./scripts/manage_swap.sh --size "$SWAP_SIZE"
 
 echo ">>> [3/3] Verifying Podman..."
 podman info > /dev/null

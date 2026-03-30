@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # ==============================================================================
 # Script Name: install.sh
@@ -43,8 +43,4 @@ else
     echo "Check service status: systemctl --user status remote-proxy"
     echo "View logs:            journalctl --user -u remote-proxy -f"
 fi
-echo "========================================================"
-echo "--------------------------------------------------------"
-echo "Check service status: systemctl --user status remote-proxy"
-echo "View logs:            journalctl --user -u remote-proxy -f"
 echo "========================================================"
