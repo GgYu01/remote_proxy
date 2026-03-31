@@ -14,8 +14,9 @@
 
 ## 推荐客户端
 
-- `sing-box` Android
-- 如果你只需要导入 VLESS / Trojan / Shadowsocks，也可以用 `v2rayNG`
+- `Hiddify`
+- `v2rayNG`
+- 只有在你明确维护 sing-box 原生 remote profile 时，再考虑 `sing-box` Android
 
 ## 推荐导入路径
 
@@ -24,6 +25,8 @@
 部署完成后，路径 A 在 VPS 上执行 `./scripts/show_info.sh` 获取生成出的分享链接。
 
 如果是路径 B，请直接导入订阅链接。
+
+如果你的运维环境还额外发布了“单节点订阅链接”，那比“先导入多节点再手工点选”更直接。
 
 ## Android 使用检查清单
 
