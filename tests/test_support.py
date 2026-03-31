@@ -7,13 +7,22 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 GIT_BASH = Path(r"C:\Program Files\Git\bin\bash.exe")
+BASH_BIN = Path("/bin/bash")
 
 
 def to_posix_path(path: Path) -> str:
     resolved = path.resolve()
+    if not resolved.drive:
+        return resolved.as_posix()
     drive = resolved.drive.rstrip(":").lower()
     tail = resolved.as_posix().split(":", 1)[1]
     return f"/{drive}{tail}"
+
+
+def shell_executable() -> Path:
+    if os.name == "nt":
+        return GIT_BASH
+    return BASH_BIN
 
 
 def run_bash_script(script: Path, cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
@@ -21,11 +30,11 @@ def run_bash_script(script: Path, cwd: Path, env: dict[str, str] | None = None) 
     if env:
         merged_env.update(env)
     extra_path = merged_env.pop("TEST_EXTRA_PATH", "")
-    command = f"'{to_posix_path(script)}'"
+    command = f"bash '{to_posix_path(script)}'"
     if extra_path:
         command = f'export PATH="{to_posix_path(Path(extra_path))}:$PATH"; {command}'
     return subprocess.run(
-        [str(GIT_BASH), "-lc", command],
+        [str(shell_executable()), "-lc", command],
         cwd=str(cwd),
         env=merged_env,
         text=True,
