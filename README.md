@@ -53,6 +53,16 @@ chmod +x install.sh scripts/*.sh
 
 ## 客户端接入
 
+先区分两种使用场景：
+
+1. `standalone-vps`
+   这时客户端连接信息来自目标 VPS 本机的 `./scripts/show_info.sh` 输出。
+
+2. 已发布订阅的受管环境
+   这时客户端应优先使用运维侧发布的订阅 URL 或导入链接，而不是再回到单节点 `show_info.sh` 思路。
+
+如果你维护的是“多节点池 + 订阅发布”方案，那么订阅入口文档应比这里的单机基线说明优先。
+
 - [Android 客户端指南](docs/clients/android.md)
 - [Windows 客户端指南](docs/clients/windows.md)
 - [Linux 客户端指南](docs/clients/linux.md)

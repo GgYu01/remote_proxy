@@ -37,7 +37,19 @@
 - 一份与 standalone sing-box 配置模型对齐的 compose 示例；
 - 一份密钥映射说明；
 - 一组只针对 Docker Compose 的重启与验证命令；
-- 与本仓库 Android / Windows / Linux 客户端文档一致的导入说明。
+- 一份“当前已发布订阅如何被 Windows / Linux / Android 客户端直接导入”的现网接入说明。
+
+## 客户端文档边界
+
+这里要明确区分两层文档：
+
+1. `remote_proxy/docs/clients/*`
+   这组文档主要描述 standalone 基线和单节点接入思路。
+
+2. 运维侧现网订阅文档
+   如果 `infra-core` 已经额外发布统一订阅 URL、多节点池或导入捷径，那么这份现网文档应优先于 standalone 基线文档。
+
+否则就会出现“公开仓库还在讲 `show_info.sh` 单节点链接，但现网已经改成订阅入口”的文档漂移。
 
 ## 明确禁止
 
