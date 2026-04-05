@@ -18,6 +18,7 @@ class CLIProxyPlusConfigTests(unittest.TestCase):
                     [
                         "CLIPROXY_PORT=8317",
                         "CLIPROXY_MANAGEMENT_KEY=test-management-key",
+                        "CLIPROXY_MANAGEMENT_ALLOW_REMOTE=true",
                         "CLIPROXY_USAGE_STATISTICS_ENABLED=true",
                         "CLIPROXY_PPROF_ENABLE=false",
                     ]
@@ -47,7 +48,7 @@ class CLIProxyPlusConfigTests(unittest.TestCase):
             self.assertIn("host: ''", content)
             self.assertIn("port: 8317", content)
             self.assertIn("enable: false", content)
-            self.assertIn("allow-remote: false", content)
+            self.assertIn("allow-remote: true", content)
             self.assertIn("usage-statistics-enabled: true", content)
             self.assertIn("auth-dir: '/root/.cli-proxy-api'", content)
 
@@ -59,6 +60,7 @@ class CLIProxyPlusConfigTests(unittest.TestCase):
                 "\n".join(
                     [
                         "CLIPROXY_PORT=8317",
+                        "CLIPROXY_MANAGEMENT_ALLOW_REMOTE=true",
                         "CLIPROXY_USAGE_STATISTICS_ENABLED=true",
                         "CLIPROXY_PPROF_ENABLE=false",
                     ]
@@ -83,6 +85,7 @@ class CLIProxyPlusConfigTests(unittest.TestCase):
 
             self.assertEqual(0, result.returncode, msg=result.stderr or result.stdout)
             content = (workdir / "state" / "cliproxy-plus" / "config.yaml").read_text(encoding="utf-8")
+            self.assertIn("allow-remote: true", content)
             self.assertIn("secret-key: 'gaoyx123'", content)
             self.assertIn("- 'gaoyx123'", content)
 

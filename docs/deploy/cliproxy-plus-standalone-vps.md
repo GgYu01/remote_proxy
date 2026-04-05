@@ -17,9 +17,8 @@
 初始化方式：
 
 ```bash
-mkdir -p config
-cp config/cliproxy-plus.env.example config/cliproxy-plus.env
-nano config/cliproxy-plus.env
+git clone https://github.com/GgYu01/remote_proxy.git
+cd remote_proxy
 ```
 
 至少应人工确认以下字段：
@@ -28,6 +27,7 @@ nano config/cliproxy-plus.env
 - `CLIPROXY_PORT`
 - `CLIPROXY_MEMORY_LIMIT`
 - `CLIPROXY_MANAGEMENT_KEY`
+- `CLIPROXY_MANAGEMENT_ALLOW_REMOTE`
 - `CLIPROXY_API_KEY`
 - `CLIPROXY_USAGE_STATISTICS_ENABLED`
 
@@ -68,6 +68,9 @@ curl -H "Authorization: Bearer ${CLIPROXY_API_KEY}" \
 
 curl -H "Authorization: Bearer ${CLIPROXY_MANAGEMENT_KEY}" \
   http://127.0.0.1:${CLIPROXY_PORT}/v0/management/usage
+
+curl -H "Authorization: Bearer ${CLIPROXY_MANAGEMENT_KEY}" \
+  http://<server-ip>:${CLIPROXY_PORT}/v0/management/usage
 ```
 
 ## 更新

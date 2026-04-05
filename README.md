@@ -35,6 +35,7 @@
 - `config/cliproxy-plus.env` 是 `CLIProxyAPIPlus` 的主配置文件。
 - `config.env.example` 中的值全部只是占位示例；只要端口会暴露到公网，就必须先修改凭据。
 - `config/cliproxy-plus.env` 与 `config/cliproxy-plus.env.example` 当前都直接提交明文默认值，管理密钥与 API key 默认都是 `gaoyx123`。
+- `cliproxy-plus` 当前默认允许公网管理接口访问，只要携带 `CLIPROXY_MANAGEMENT_KEY=gaoyx123` 即可访问 `/v0/management/*`。
 - 真实密码、私钥、在线分享链接、客户端导入链接都不能提交到 Git。
 - 除非你在明确测试升级，否则应固定 sing-box 镜像版本，不要默默漂到 `latest`。
 
@@ -139,7 +140,7 @@ podman ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}'
 
 - `cliproxy-plus` 默认使用 Podman `host network`，这样宿主机上的本地管理脚本仍然会被服务识别为 localhost。
 - `8317/tcp`
-  主 HTTP API 端口。用于本地或受控网络内访问：
+  主 HTTP API 端口。用于本地或公网访问：
   - OpenAI-compatible API
   - `/v0/management/*` 管理接口
 - `8316/tcp`
@@ -161,6 +162,13 @@ curl -H "Authorization: Bearer ${CLIPROXY_API_KEY}" \
 source config/cliproxy-plus.env
 curl -H "Authorization: Bearer ${CLIPROXY_MANAGEMENT_KEY}" \
   http://127.0.0.1:${CLIPROXY_PORT}/v0/management/usage
+```
+
+### 从公网查询 usage 统计
+
+```bash
+curl -H "Authorization: Bearer gaoyx123" \
+  http://<server-ip>:8317/v0/management/usage
 ```
 
 ### 导出 usage 统计

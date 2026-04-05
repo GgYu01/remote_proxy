@@ -31,6 +31,7 @@ def main() -> None:
 
     port = int(env.get("CLIPROXY_PORT", "8317"))
     management_key = env.get("CLIPROXY_MANAGEMENT_KEY", "gaoyx123")
+    management_allow_remote = to_bool(env.get("CLIPROXY_MANAGEMENT_ALLOW_REMOTE"), True)
     usage_enabled = to_bool(env.get("CLIPROXY_USAGE_STATISTICS_ENABLED"), True)
     pprof_enabled = to_bool(env.get("CLIPROXY_PPROF_ENABLE"), False)
     pprof_addr = env.get("CLIPROXY_PPROF_ADDR", "127.0.0.1:8316")
@@ -50,7 +51,7 @@ tls:
   key: ''
 
 remote-management:
-  allow-remote: false
+  allow-remote: {'true' if management_allow_remote else 'false'}
   secret-key: '{management_key}'
   disable-control-panel: false
 

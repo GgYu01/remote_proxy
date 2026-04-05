@@ -178,12 +178,12 @@
 
 ### 2. 管理面
 
-管理 API 必须存在，但默认以“本机访问 + 独立密钥”为准。
+管理 API 必须存在，并且当前仓库默认以“公网可访问 + 独立密钥”为准。
 
 建议策略：
 
-- `remote-management.allow-remote: false`
-- 所有导出/导入与运维动作都通过宿主机本地 `curl http://127.0.0.1:<port>` 调用
+- `remote-management.allow-remote: true`
+- 所有导出/导入与运维动作仍优先通过宿主机本地 `curl http://127.0.0.1:<port>` 调用
 - 管理密钥通过 `Authorization: Bearer <key>` 发送
 - 不开放 `pprof` 到公网
 
