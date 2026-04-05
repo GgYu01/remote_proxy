@@ -14,6 +14,7 @@
 # sudo ./manage_swap.sh --size 4
 # sudo ./manage_swap.sh --size 1
 DEFAULT_SWAP_SIZE_GB=2
+REPLACE_EXISTING=false
 
 # 设置 SWAP 文件的路径
 SWAP_FILE_PATH="/swapfile"
@@ -28,8 +29,9 @@ set -o pipefail
 
 # 打印使用方法
 print_usage() {
-    echo "Usage: $0 [-s|--size <size_in_gb>] [-h|--help]"
+    echo "Usage: $0 [-s|--size <size_in_gb>] [--replace-existing] [-h|--help]"
     echo "  -s, --size    Specify the desired swap size in Gigabytes (e.g., 2)."
+    echo "  --replace-existing    Replace an existing active swap instead of reusing it."
     echo "  -h, --help    Display this help message."
     echo ""
     echo "If no size is specified, it will use the default value of ${DEFAULT_SWAP_SIZE_GB}GB."
@@ -70,6 +72,15 @@ cleanup_existing_swap() {
     fi
 }
 
+show_final_status() {
+    echo ""
+    echo "--- Final Verification ---"
+    swapon --show
+    echo "--------------------------"
+    free -h
+    echo "--------------------------"
+}
+
 # --- Main Logic ---
 
 main() {
@@ -86,6 +97,9 @@ main() {
                     print_usage
                     exit 1
                 fi
+                ;;
+            --replace-existing)
+                REPLACE_EXISTING=true
                 ;;
             -h|--help)
                 print_usage
@@ -111,9 +125,10 @@ main() {
     EXISTING_SWAP=$(swapon --show --noheadings | awk '{print $1}')
 
     if [ -n "$EXISTING_SWAP" ]; then
-        read -p "⚠️ WARNING: An existing swap configuration was found. This script will REMOVE it and create a new one. Continue? (y/N) " confirm
-        if [[ "$confirm" != [yY] && "$confirm" != [yY][eE][sS] ]]; then
-            echo "Aborted by user."
+        if [ "$REPLACE_EXISTING" != "true" ]; then
+            echo "INFO: Found active swap at '${EXISTING_SWAP}'. Reusing existing swap and skipping changes."
+            echo "INFO: Pass --replace-existing if you explicitly want to recreate swap."
+            show_final_status
             exit 0
         fi
         cleanup_existing_swap "$EXISTING_SWAP"
@@ -164,11 +179,7 @@ main() {
 
     echo ""
     echo "✅ Swap space successfully configured."
-    echo "--- Final Verification ---"
-    swapon --show
-    echo "--------------------------"
-    free -h
-    echo "--------------------------"
+    show_final_status
 }
 
 # 执行主函数

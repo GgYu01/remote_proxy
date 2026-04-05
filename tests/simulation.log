@@ -3,7 +3,7 @@
 🔧 Step 1: Setting up Environment...
 >>> [1/3] Updating System Packages...
 [MOCK] Executing sudo apt-get update -q
-[MOCK] Executing sudo apt-get upgrade -yq
+>>> Skipping full apt-get upgrade (SETUP_ENV_ALLOW_FULL_UPGRADE=false)
 [MOCK] Executing sudo apt-get install -yq curl jq python3 podman uidmap slirp4netns systemd-container
 >>> [2/3] Configuring Swap...
 [MOCK] Executing sudo ./scripts/manage_swap.sh --size 2
@@ -12,21 +12,49 @@
 ✅ Environment Setup Complete.
 ⚙️  Step 2: Generating Configuration...
 🔑 Generating Reality Keypair...
-[MOCK] Executing podman run --rm ghcr.io/sagernet/sing-box:latest generate reality-keypair
-✅ Generated Keys.
-   Private: mock_private_key_12345
-   Public:  mock_public_key_67890
-💾 Saved to config.env
+[MOCK] Executing podman run --rm ghcr.io/sagernet/sing-box:v1.13.2 generate reality-keypair
+💾 Saved Reality keys to config.env
+🔑 Generating new VLESS_UUID...
+   UUID: 2d3ed025-9db1-439c-88b1-8d5937d20d11
 Generating config with Base Port: 10000
 [OK] singbox.json generated successfully.
 🚀 Step 3: Deploying Service...
->>> Generating Quadlet file...
+ℹ️  Running as USER. Using user-scope Quadlet dir: /tmp/tmp.w0s7omt0jx/home/.config/containers/systemd
+>>> Generating Quadlet file at /tmp/tmp.w0s7omt0jx/home/.config/containers/systemd/remote-proxy.container
 >>> Reloading Systemd...
+[MOCK] Executing systemctl --user daemon-reload
+>>> Verifying Service Generation...
+[MOCK] Executing systemctl --user list-unit-files remote-proxy.service
+   Waiting for generator... (1/5)
+[MOCK] Executing systemctl --user list-unit-files remote-proxy.service
+   Waiting for generator... (2/5)
+[MOCK] Executing systemctl --user list-unit-files remote-proxy.service
+   Waiting for generator... (3/5)
+[MOCK] Executing systemctl --user list-unit-files remote-proxy.service
+   Waiting for generator... (4/5)
+[MOCK] Executing systemctl --user list-unit-files remote-proxy.service
+   Waiting for generator... (5/5)
+⚠️  Quadlet generation failed. Falling back to standard Systemd Unit.
+>>> Reloading Systemd (Fallback)...
 [MOCK] Executing systemctl --user daemon-reload
 >>> Starting Service...
 [MOCK] Executing systemctl --user enable --now remote-proxy
 [MOCK] Executing systemctl --user status remote-proxy --no-pager
-✅ Deployment initiated. Check logs with: journalctl --user -u remote-proxy -f
+✅ Deployment initiated. Check logs with: journalctl -u remote-proxy -f
+   (User mode logs: journalctl --user -u remote-proxy -f)
+
+========================================================
+📝 Client Connection Information
+========================================================
+
+📂 Configuration is saved in: /d/WebDev_Env/remote_proxy/config.env
+
+🔗 VLESS + Reality Share Link (Copy to Client):
+--------------------------------------------------------
+vless://2d3ed025-9db1-439c-88b1-8d5937d20d11@38.34.8.59:10003?security=reality&encryption=none&pbk=mock_public_key_67890&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.microsoft.com&sid=97b1c5179a53346c#MyRemoteProxy
+--------------------------------------------------------
+
+ℹ️  To view this info again, run: ./scripts/show_info.sh
 ========================================================
 🎉 Installation Complete!
 --------------------------------------------------------
