@@ -20,7 +20,7 @@ if [ ! -f "$CONFIG_PATH" ]; then
     python3 "$SCRIPT_DIR/gen_config.py"
 fi
 
-CLIPROXY_IMAGE="${CLIPROXY_IMAGE:-docker.io/eceasy/cli-proxy-api-plus:v6.9.15-0}"
+CLIPROXY_IMAGE="${CLIPROXY_IMAGE:-docker.io/eceasy/cli-proxy-api-plus:latest}"
 CLIPROXY_PORT="${CLIPROXY_PORT:-8317}"
 CLIPROXY_MEMORY_LIMIT="$(remote_proxy_normalize_memory_limit "${CLIPROXY_MEMORY_LIMIT:-128M}" "128M" "128")"
 CLIPROXY_NETWORK_MODE="${CLIPROXY_NETWORK_MODE:-host}"
