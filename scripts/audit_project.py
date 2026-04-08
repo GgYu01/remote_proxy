@@ -57,8 +57,6 @@ REQUIRED_FILES = [
     "tests/test_manage_swap.py",
 ]
 
-SHELL_SCRIPTS = [f for f in REQUIRED_FILES if f.endswith(".sh")]
-
 BASH_CANDIDATES = [
     os.environ.get("REMOTE_PROXY_BASH"),
     r"C:\Program Files\Git\bin\bash.exe",
@@ -75,6 +73,16 @@ def resolve_bash():
         if which(candidate):
             return candidate
     return None
+
+
+def tracked_shell_scripts():
+    result = subprocess.run(
+        ["git", "ls-files", "--", "*.sh"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [line for line in result.stdout.splitlines() if line]
 
 def log_pass(msg):
     print(f"[PASS] {msg}")
@@ -96,8 +104,9 @@ def check_files_exist():
 def check_scripts_release_modes():
     all_pass = True
     try:
+        shell_scripts = tracked_shell_scripts()
         result = subprocess.run(
-            ["git", "ls-files", "--stage", "--", *SHELL_SCRIPTS],
+            ["git", "ls-files", "--stage", "--", *shell_scripts],
             check=True,
             capture_output=True,
             text=True,
@@ -106,13 +115,17 @@ def check_scripts_release_modes():
         log_fail(f"Unable to inspect git index modes: {exc}")
         return False
 
+    if not shell_scripts:
+        log_fail("No tracked shell scripts found in git index")
+        return False
+
     indexed_modes = {}
     for line in result.stdout.splitlines():
         mode, _object_id, stage_and_path = line.split(" ", 2)
         _stage, path = stage_and_path.split("\t", 1)
         indexed_modes[path] = mode
 
-    for script in SHELL_SCRIPTS:
+    for script in shell_scripts:
         mode = indexed_modes.get(script)
         if mode == "100755":
             log_pass(f"Git executable mode OK: {script}")
@@ -128,7 +141,13 @@ def check_syntax():
     all_pass = True
     # Bash syntax
     bash_cmd = resolve_bash()
-    for s in SHELL_SCRIPTS:
+    try:
+        shell_scripts = tracked_shell_scripts()
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        log_fail(f"Unable to enumerate tracked shell scripts: {exc}")
+        return False
+
+    for s in shell_scripts:
         try:
             if not bash_cmd:
                 raise FileNotFoundError("bash command not found")
