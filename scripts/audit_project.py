@@ -48,6 +48,7 @@ REQUIRED_FILES = [
     "docs/plans/2026-04-05-dual-service-cliproxy-plus-design.md",
     "docs/plans/2026-04-05-dual-service-cliproxy-plus.md",
     "tests/test_cliproxy_plus_config.py",
+    "tests/test_cliproxy_plus_defaults.py",
     "tests/test_cliproxy_plus_deploy.py",
     "tests/test_cliproxy_plus_usage_lifecycle.py",
     "tests/test_service_entrypoint.py",
