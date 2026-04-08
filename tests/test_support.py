@@ -11,6 +11,9 @@ BASH_BIN = Path("/bin/bash")
 
 
 def to_posix_path(path: Path) -> str:
+    raw = str(path).replace("\\", "/")
+    if raw.startswith("/") and not path.drive:
+        return raw
     resolved = path.resolve()
     if not resolved.drive:
         return resolved.as_posix()

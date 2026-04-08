@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ==============================================================================
 # Script Name: deploy.sh
-# Description: Deploys the service using Podman Quadlet
+# Description: Deploys sing-box using Podman Quadlet
 # ==============================================================================
 
 IS_ROOT=0
