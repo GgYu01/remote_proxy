@@ -51,10 +51,13 @@ REQUIRED_FILES = [
     "tests/test_cliproxy_plus_defaults.py",
     "tests/test_cliproxy_plus_deploy.py",
     "tests/test_cliproxy_plus_usage_lifecycle.py",
+    "tests/test_git_index_modes.py",
     "tests/test_service_entrypoint.py",
     "tests/test_line_endings.py",
     "tests/test_manage_swap.py",
 ]
+
+SHELL_SCRIPTS = [f for f in REQUIRED_FILES if f.endswith(".sh")]
 
 BASH_CANDIDATES = [
     os.environ.get("REMOTE_PROXY_BASH"),
@@ -90,28 +93,42 @@ def check_files_exist():
             all_pass = False
     return all_pass
 
-def check_scripts_executable():
+def check_scripts_release_modes():
     all_pass = True
-    scripts = [f for f in REQUIRED_FILES if f.endswith('.sh')]
-    for s in scripts:
-        if os.access(s, os.X_OK):
-            log_pass(f"Executable: {s}")
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "--stage", "--", *SHELL_SCRIPTS],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        log_fail(f"Unable to inspect git index modes: {exc}")
+        return False
+
+    indexed_modes = {}
+    for line in result.stdout.splitlines():
+        mode, _object_id, stage_and_path = line.split(" ", 2)
+        _stage, path = stage_and_path.split("\t", 1)
+        indexed_modes[path] = mode
+
+    for script in SHELL_SCRIPTS:
+        mode = indexed_modes.get(script)
+        if mode == "100755":
+            log_pass(f"Git executable mode OK: {script}")
+        elif mode is None:
+            log_fail(f"Missing from git index: {script}")
+            all_pass = False
         else:
-            # Try to chmod it
-            try:
-                os.chmod(s, 0o755)
-                log_pass(f"Fixed permissions: {s}")
-            except Exception as e:
-                log_fail(f"Not executable and failed to fix: {s} ({e})")
-                all_pass = False
+            log_fail(f"Git executable mode mismatch: {script} ({mode})")
+            all_pass = False
     return all_pass
 
 def check_syntax():
     all_pass = True
     # Bash syntax
-    bash_scripts = [f for f in REQUIRED_FILES if f.endswith('.sh')]
     bash_cmd = resolve_bash()
-    for s in bash_scripts:
+    for s in SHELL_SCRIPTS:
         try:
             if not bash_cmd:
                 raise FileNotFoundError("bash command not found")
@@ -141,7 +158,7 @@ def main():
     
     checks = [
         ("File Integrity", check_files_exist),
-        ("Permissions", check_scripts_executable),
+        ("Git Release Modes", check_scripts_release_modes),
         ("Syntax Validation", check_syntax)
     ]
     
