@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Optional
 
 
 def load_env_file(path: Path) -> dict[str, str]:
@@ -18,7 +19,7 @@ def load_env_file(path: Path) -> dict[str, str]:
     return data
 
 
-def to_bool(value: str | None, default: bool) -> bool:
+def to_bool(value: Optional[str], default: bool) -> bool:
     if value is None or value == "":
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
@@ -75,7 +76,8 @@ request-retry: 3
 max-retry-credentials: 0
 max-retry-interval: 30
 """
-    config_path.write_text(config_text, encoding="utf-8", newline="\n")
+    with config_path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(config_text)
     print(f"[OK] generated {config_path}")
 
 

@@ -10,6 +10,8 @@ from shutil import which
 # ==============================================================================
 
 REQUIRED_FILES = [
+    "AGENTS.md",
+    ".github/workflows/ci.yml",
     ".gitattributes",
     "install.sh",
     "config.env.example",

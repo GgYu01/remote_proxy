@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+from typing import Dict, Optional
 from pathlib import Path
 
 
@@ -28,7 +29,9 @@ def shell_executable() -> Path:
     return BASH_BIN
 
 
-def run_bash_script(script: Path, cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+def run_bash_script(
+    script: Path, cwd: Path, env: Optional[Dict[str, str]] = None
+) -> subprocess.CompletedProcess[str]:
     merged_env = os.environ.copy()
     if env:
         merged_env.update(env)
@@ -49,5 +52,11 @@ def run_bash_script(script: Path, cwd: Path, env: dict[str, str] | None = None) 
 
 
 def write_executable(path: Path, content: str) -> None:
-    path.write_text(content, encoding="utf-8", newline="\n")
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(content)
     path.chmod(0o755)
+
+
+def write_text_file(path: Path, content: str) -> None:
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(content)

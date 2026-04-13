@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tests.test_support import REPO_ROOT, run_bash_script, write_executable
+from tests.test_support import REPO_ROOT, run_bash_script, write_executable, write_text_file
 
 
 class CLIProxyPlusUsageLifecycleTests(unittest.TestCase):
@@ -13,7 +13,8 @@ class CLIProxyPlusUsageLifecycleTests(unittest.TestCase):
             workdir = Path(tmp)
             (workdir / "config").mkdir()
             (workdir / "state" / "cliproxy-plus" / "usage").mkdir(parents=True)
-            (workdir / "config" / "cliproxy-plus.env").write_text(
+            write_text_file(
+                workdir / "config" / "cliproxy-plus.env",
                 "\n".join(
                     [
                         "CLIPROXY_PORT=8317",
@@ -21,8 +22,6 @@ class CLIProxyPlusUsageLifecycleTests(unittest.TestCase):
                     ]
                 )
                 + "\n",
-                encoding="utf-8",
-                newline="\n",
             )
 
             bin_dir = workdir / "bin"
@@ -54,7 +53,8 @@ class CLIProxyPlusUsageLifecycleTests(unittest.TestCase):
             workdir = Path(tmp)
             (workdir / "config").mkdir()
             (workdir / "state" / "cliproxy-plus" / "usage").mkdir(parents=True)
-            (workdir / "config" / "cliproxy-plus.env").write_text(
+            write_text_file(
+                workdir / "config" / "cliproxy-plus.env",
                 "\n".join(
                     [
                         "CLIPROXY_PORT=8317",
@@ -62,8 +62,6 @@ class CLIProxyPlusUsageLifecycleTests(unittest.TestCase):
                     ]
                 )
                 + "\n",
-                encoding="utf-8",
-                newline="\n",
             )
             (workdir / "state" / "cliproxy-plus" / "usage" / "latest.json").write_text(
                 "{\"version\":1,\"usage\":{\"total_requests\":7}}\n",

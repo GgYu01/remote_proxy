@@ -12,19 +12,18 @@ class DeployScriptTests(unittest.TestCase):
     def test_fallback_service_uses_pinned_image_and_optional_compat_flags(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             workdir = Path(tmp)
-            (workdir / "config.env").write_text(
-                "\n".join(
-                    [
-                        "BASE_PORT=10000",
-                        "MEMORY_LIMIT=8M",
-                        "SING_BOX_IMAGE=ghcr.io/sagernet/sing-box:v1.13.2",
-                        "ENABLE_DEPRECATED_SING_BOX_FLAGS=true",
-                    ]
+            with (workdir / "config.env").open("w", encoding="utf-8", newline="\n") as handle:
+                handle.write(
+                    "\n".join(
+                        [
+                            "BASE_PORT=10000",
+                            "MEMORY_LIMIT=8M",
+                            "SING_BOX_IMAGE=ghcr.io/sagernet/sing-box:v1.13.2",
+                            "ENABLE_DEPRECATED_SING_BOX_FLAGS=true",
+                        ]
+                    )
+                    + "\n"
                 )
-                + "\n",
-                encoding="utf-8",
-                newline="\n",
-            )
             (workdir / "singbox.json").write_text("{}", encoding="utf-8")
 
             home_dir = workdir / "home"
@@ -68,19 +67,18 @@ class DeployScriptTests(unittest.TestCase):
     def test_quadlet_mode_removes_stale_fallback_unit_before_restart(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             workdir = Path(tmp)
-            (workdir / "config.env").write_text(
-                "\n".join(
-                    [
-                        "BASE_PORT=10000",
-                        "MEMORY_LIMIT=256M",
-                        "SING_BOX_IMAGE=ghcr.io/sagernet/sing-box:v1.13.2",
-                        "ENABLE_DEPRECATED_SING_BOX_FLAGS=true",
-                    ]
+            with (workdir / "config.env").open("w", encoding="utf-8", newline="\n") as handle:
+                handle.write(
+                    "\n".join(
+                        [
+                            "BASE_PORT=10000",
+                            "MEMORY_LIMIT=256M",
+                            "SING_BOX_IMAGE=ghcr.io/sagernet/sing-box:v1.13.2",
+                            "ENABLE_DEPRECATED_SING_BOX_FLAGS=true",
+                        ]
+                    )
+                    + "\n"
                 )
-                + "\n",
-                encoding="utf-8",
-                newline="\n",
-            )
             (workdir / "singbox.json").write_text("{}", encoding="utf-8")
 
             home_dir = workdir / "home"
@@ -145,11 +143,11 @@ class DeployScriptTests(unittest.TestCase):
             self.assertEqual(0, result.returncode, msg=result.stderr or result.stdout)
             self.assertFalse(stale_unit.exists(), msg=result.stdout)
             systemctl_calls = systemctl_log.read_text(encoding="utf-8")
+            self.assertIn("enable remote-proxy", systemctl_calls)
             self.assertIn("restart remote-proxy", systemctl_calls)
-            self.assertNotIn("enable remote-proxy", systemctl_calls)
-            quadlet_text = (home_dir / ".config" / "containers" / "systemd" / "remote-proxy.container").read_text(
-                encoding="utf-8"
-            )
+            quadlet_text = (
+                home_dir / ".config" / "containers" / "systemd" / "remote-proxy.container"
+            ).read_text(encoding="utf-8")
             self.assertIn("PodmanArgs=--memory 256M", quadlet_text)
             self.assertIn("[Install]", quadlet_text)
             self.assertIn("WantedBy=default.target", quadlet_text)

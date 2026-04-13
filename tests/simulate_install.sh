@@ -6,7 +6,7 @@
 
 TEST_DIR=$(mktemp -d)
 PROJECT_DIR=$(pwd)
-LOG_FILE="$PROJECT_DIR/tests/simulation.log"
+LOG_FILE="$TEST_DIR/simulation.log"
 
 # Setup Mock Environment
 export PATH="$TEST_DIR:$PATH"
@@ -98,19 +98,20 @@ else
     FAILED=1
 fi
 
-if grep -q "systemctl --user enable --now remote-proxy" "$LOG_FILE"; then
-    echo "✅ Service enabled via systemctl."
+if grep -q "systemctl --user enable remote-proxy" "$LOG_FILE" && \
+   grep -q "systemctl --user restart remote-proxy" "$LOG_FILE"; then
+    echo "✅ Service enabled and restarted via systemctl."
 else
-    echo "❌ Service NOT enabled."
+    echo "❌ Service NOT enabled/restarted."
     FAILED=1
 fi
 
 # Cleanup
-rm -rf "$TEST_DIR"
 rm -f singbox.json config.env
 echo "------------------------------------------------"
 if [ $FAILED -eq 0 ]; then
     echo "🎉 STRICT CHECK PASSED: Logic Verified."
+    rm -rf "$TEST_DIR"
     exit 0
 else
     echo "💀 STRICT CHECK FAILED: See $LOG_FILE for details."

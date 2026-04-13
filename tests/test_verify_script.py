@@ -12,11 +12,8 @@ class VerifyScriptTests(unittest.TestCase):
     def test_verify_output_does_not_print_raw_proxy_credentials(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             workdir = Path(tmp)
-            (workdir / "config.env").write_text(
-                "PROXY_USER=user1\nPROXY_PASS=s3cr3t\nBASE_PORT=10000\n",
-                encoding="utf-8",
-                newline="\n",
-            )
+            with (workdir / "config.env").open("w", encoding="utf-8", newline="\n") as handle:
+                handle.write("PROXY_USER=user1\nPROXY_PASS=s3cr3t\nBASE_PORT=10000\n")
 
             bin_dir = workdir / "bin"
             bin_dir.mkdir()

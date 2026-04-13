@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from tests.test_support import REPO_ROOT
+from tests.test_support import REPO_ROOT, write_text_file
 
 
 class CLIProxyPlusConfigTests(unittest.TestCase):
@@ -13,7 +14,8 @@ class CLIProxyPlusConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             workdir = Path(tmp)
             (workdir / "config").mkdir()
-            (workdir / "config" / "cliproxy-plus.env").write_text(
+            write_text_file(
+                workdir / "config" / "cliproxy-plus.env",
                 "\n".join(
                     [
                         "CLIPROXY_PORT=8317",
@@ -24,13 +26,11 @@ class CLIProxyPlusConfigTests(unittest.TestCase):
                     ]
                 )
                 + "\n",
-                encoding="utf-8",
-                newline="\n",
             )
 
             result = subprocess.run(
                 [
-                    "python",
+                    sys.executable,
                     str(REPO_ROOT / "scripts" / "services" / "cliproxy_plus" / "gen_config.py"),
                 ],
                 cwd=str(workdir),
@@ -56,7 +56,8 @@ class CLIProxyPlusConfigTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             workdir = Path(tmp)
             (workdir / "config").mkdir()
-            (workdir / "config" / "cliproxy-plus.env").write_text(
+            write_text_file(
+                workdir / "config" / "cliproxy-plus.env",
                 "\n".join(
                     [
                         "CLIPROXY_PORT=8317",
@@ -66,13 +67,11 @@ class CLIProxyPlusConfigTests(unittest.TestCase):
                     ]
                 )
                 + "\n",
-                encoding="utf-8",
-                newline="\n",
             )
 
             result = subprocess.run(
                 [
-                    "python",
+                    sys.executable,
                     str(REPO_ROOT / "scripts" / "services" / "cliproxy_plus" / "gen_config.py"),
                 ],
                 cwd=str(workdir),

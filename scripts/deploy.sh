@@ -211,17 +211,20 @@ EOF
     $SYSTEMCTL_CMD daemon-reload
 fi
 
-echo ">>> Starting Service..."
-if [ "$DEPLOY_MODE" = "fallback" ] && ! $SYSTEMCTL_CMD enable remote-proxy; then
+echo ">>> Enabling Service..."
+if ! $SYSTEMCTL_CMD enable remote-proxy; then
     echo "❌ Failed to enable service. Debugging info:"
     print_quadlet_debug
     exit 1
 fi
 
+echo ">>> Applying Service Restart..."
 if ! $SYSTEMCTL_CMD restart remote-proxy; then
-    echo "❌ Failed to restart service. Debugging info:"
-    print_quadlet_debug
-    exit 1
+    if ! $SYSTEMCTL_CMD start remote-proxy; then
+        echo "❌ Failed to restart/start service. Debugging info:"
+        print_quadlet_debug
+        exit 1
+    fi
 fi
 
 sleep 2

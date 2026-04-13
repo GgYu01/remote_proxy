@@ -13,7 +13,8 @@ class GenConfigTests(unittest.TestCase):
     def run_gen_config(self, config_text: str) -> dict:
         with tempfile.TemporaryDirectory() as tmp:
             workdir = Path(tmp)
-            (workdir / "config.env").write_text(config_text, encoding="utf-8", newline="\n")
+            with (workdir / "config.env").open("w", encoding="utf-8", newline="\n") as handle:
+                handle.write(config_text)
 
             result = subprocess.run(
                 ["python3", str(REPO_ROOT / "scripts" / "gen_config.py")],

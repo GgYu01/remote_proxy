@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tests.test_support import REPO_ROOT, run_bash_script, write_executable
+from tests.test_support import REPO_ROOT, run_bash_script, write_executable, write_text_file
 
 
 class SetupEnvTests(unittest.TestCase):
@@ -12,11 +12,7 @@ class SetupEnvTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             workdir = Path(tmp)
             (workdir / "scripts").mkdir()
-            (workdir / "scripts" / "manage_swap.sh").write_text(
-                "#!/bin/sh\nexit 0\n",
-                encoding="utf-8",
-                newline="\n",
-            )
+            write_text_file(workdir / "scripts" / "manage_swap.sh", "#!/bin/sh\nexit 0\n")
             (workdir / "scripts" / "manage_swap.sh").chmod(0o755)
 
             bin_dir = workdir / "bin"
