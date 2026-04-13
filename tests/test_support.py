@@ -51,6 +51,28 @@ def run_bash_script(
     )
 
 
+def run_bash_command(
+    command: str, cwd: Path, env: Optional[Dict[str, str]] = None
+) -> subprocess.CompletedProcess[str]:
+    merged_env = os.environ.copy()
+    if env:
+        merged_env.update(env)
+    extra_path = merged_env.pop("TEST_EXTRA_PATH", "")
+    shell_command = command
+    if extra_path:
+        shell_command = f'export PATH="{to_posix_path(Path(extra_path))}:$PATH"; {shell_command}'
+    return subprocess.run(
+        [str(shell_executable()), "-lc", shell_command],
+        cwd=str(cwd),
+        env=merged_env,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        check=False,
+    )
+
+
 def write_executable(path: Path, content: str) -> None:
     with path.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(content)

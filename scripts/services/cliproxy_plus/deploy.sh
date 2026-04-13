@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/../../lib/common.sh"
+remote_proxy_runtime_preflight check 3.9 podman systemctl
 
 remote_proxy_load_env_file "$(remote_proxy_cliproxy_env_file)"
 remote_proxy_configure_systemd_scope
@@ -17,7 +18,7 @@ USAGE_PATH="$STATE_ROOT/usage"
 mkdir -p "$STATE_ROOT" "$AUTHS_PATH" "$LOGS_PATH" "$USAGE_PATH" "$REMOTE_PROXY_SYSTEMD_DIR"
 
 if [ ! -f "$CONFIG_PATH" ]; then
-    python3 "$SCRIPT_DIR/gen_config.py"
+    "$REMOTE_PROXY_PYTHON_BIN" "$SCRIPT_DIR/gen_config.py"
 fi
 
 CLIPROXY_IMAGE="${CLIPROXY_IMAGE:-docker.io/eceasy/cli-proxy-api-plus:latest}"

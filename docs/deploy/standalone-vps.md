@@ -10,10 +10,31 @@
 
 ## 部署前检查
 
-1. 确认主机系统为 Debian 12/13 或 Ubuntu 22.04/24.04。
+1. 优先使用 Debian 11/12/13 或 Ubuntu 22.04/24.04。
 2. 确认你拥有 root 权限，或可执行 sudo 的运维账号。
 3. 确认是否继续使用默认端口 `10000-10004`。
 4. 确认本次是生成新的 UUID / Reality 密钥对，还是迁移既有配置。
+
+## 运行时兼容层
+
+安装与部署前会自动执行宿主机运行时兼容检查：
+
+- 默认策略：`REMOTE_PROXY_RUNTIME_POLICY=hybrid`
+- Python 下限：`>= 3.9`
+- 自动修复边界：
+  - 优先复用主机上已经存在的 `python3.9+`、`python3.10+` 等版本化解释器；
+  - 如果当前发行版原生仓库里存在兼容版本包，则自动补装并切换到该解释器；
+  - 不会去改写系统默认 `/usr/bin/python3`，也不会自动添加第三方源。
+
+如果宿主机是 Debian 10、Ubuntu 20.04 这类默认 Python 偏旧的平台，而当前仓库源里又没有兼容包，脚本会直接阻断。此时应采用以下其中一种正式处理方式：
+
+1. 先在主机上准备一个已验证的兼容解释器，然后导出：
+
+```bash
+export REMOTE_PROXY_PYTHON_BIN=/usr/bin/python3.10
+```
+
+2. 升级宿主机到受支持的 Debian / Ubuntu 基线后再执行安装。
 
 ## 配置文件与密钥
 
@@ -46,10 +67,11 @@ chmod +x install.sh scripts/*.sh
 `install.sh` 会依次执行：
 
 1. 安装系统依赖并准备 swap；
-2. 生成或校正受管密钥；
-3. 生成 `singbox.json`；
-4. 生成 Quadlet，必要时回退到后备 systemd 服务定义；
-5. 执行本地验证并输出客户端连接信息。
+2. 执行运行时兼容检查，必要时自动补装兼容 Python；
+3. 生成或校正受管密钥；
+4. 生成 `singbox.json`；
+5. 生成 Quadlet，必要时回退到后备 systemd 服务定义；
+6. 执行本地验证并输出客户端连接信息。
 
 ## 验证
 
@@ -92,7 +114,7 @@ systemctl --user cat remote-proxy
 4. 重新执行：
 
 ```bash
-python3 scripts/gen_config.py
+${REMOTE_PROXY_PYTHON_BIN:-python3} scripts/gen_config.py
 ./scripts/deploy.sh
 ./scripts/verify.sh
 ```

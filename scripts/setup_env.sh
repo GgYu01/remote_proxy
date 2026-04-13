@@ -6,6 +6,10 @@ set -euo pipefail
 # Description: Prepares the environment (Update, Podman, Swap)
 # ==============================================================================
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/lib/runtime_compat.sh"
+
 # Load config if exists
 if [ -f config.env ]; then
     set -a
@@ -54,4 +58,5 @@ ${SUDO_CMD} ./scripts/manage_swap.sh --size "$SWAP_SIZE"
 
 echo ">>> [3/3] Verifying Podman..."
 podman info > /dev/null
+remote_proxy_runtime_preflight ensure 3.9 curl jq podman systemctl
 echo "✅ Environment Setup Complete."

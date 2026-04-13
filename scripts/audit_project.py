@@ -20,6 +20,7 @@ REQUIRED_FILES = [
     "scripts/setup_env.sh",
     "scripts/manage_swap.sh",
     "scripts/lib/common.sh",
+    "scripts/lib/runtime_compat.sh",
     "scripts/gen_config.py",
     "scripts/deploy.sh",
     "scripts/verify.sh",
@@ -49,6 +50,7 @@ REQUIRED_FILES = [
     "docs/plans/2026-03-30-remote-proxy-reliability.md",
     "docs/plans/2026-04-05-dual-service-cliproxy-plus-design.md",
     "docs/plans/2026-04-05-dual-service-cliproxy-plus.md",
+    "docs/plans/2026-04-13-runtime-compatibility-guard.md",
     "tests/test_cliproxy_plus_config.py",
     "tests/test_cliproxy_plus_defaults.py",
     "tests/test_cliproxy_plus_deploy.py",
@@ -57,6 +59,7 @@ REQUIRED_FILES = [
     "tests/test_service_entrypoint.py",
     "tests/test_line_endings.py",
     "tests/test_manage_swap.py",
+    "tests/test_runtime_compat.py",
 ]
 
 BASH_CANDIDATES = [

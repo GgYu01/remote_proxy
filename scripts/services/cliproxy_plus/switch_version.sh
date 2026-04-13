@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/../../lib/common.sh"
+remote_proxy_runtime_preflight check 3.9
 
 TARGET_TAG="${1:-}"
 if [ -z "$TARGET_TAG" ]; then
@@ -17,7 +18,7 @@ remote_proxy_load_env_file "$ENV_FILE"
 mkdir -p "$(dirname "$ENV_FILE")"
 
 if [ -f "$ENV_FILE" ] && grep -q '^CLIPROXY_IMAGE=' "$ENV_FILE"; then
-    python3 - "$ENV_FILE" "$TARGET_TAG" <<'PY'
+    "$REMOTE_PROXY_PYTHON_BIN" - "$ENV_FILE" "$TARGET_TAG" <<'PY'
 from pathlib import Path
 import sys
 

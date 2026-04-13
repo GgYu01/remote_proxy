@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
+COMMON_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck disable=SC1091
+. "$COMMON_LIB_DIR/runtime_compat.sh"
+
 remote_proxy_repo_root() {
     pwd -P
 }

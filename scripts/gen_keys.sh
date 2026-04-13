@@ -6,6 +6,11 @@ set -euo pipefail
 # Description: Generates X25519 keys for Reality using the sing-box container
 # ==============================================================================
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/lib/runtime_compat.sh"
+remote_proxy_runtime_preflight check 3.9
+
 CONFIG_FILE="config.env"
 
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -56,7 +61,7 @@ generate_uuid() {
         return 0
     fi
 
-    python3 - <<'PY'
+    "$REMOTE_PROXY_PYTHON_BIN" - <<'PY'
 import uuid
 print(uuid.uuid4())
 PY

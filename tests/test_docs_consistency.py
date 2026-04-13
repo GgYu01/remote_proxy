@@ -41,6 +41,20 @@ class DocsConsistencyTests(unittest.TestCase):
         self.assertIn("switch-version", readme)
         self.assertIn("update", readme)
 
+    def test_readme_documents_runtime_compatibility_guard(self) -> None:
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("REMOTE_PROXY_RUNTIME_POLICY", readme)
+        self.assertIn("REMOTE_PROXY_PYTHON_BIN", readme)
+        self.assertIn("hybrid", readme)
+
+    def test_deploy_docs_document_runtime_compatibility_guard(self) -> None:
+        standalone = (REPO_ROOT / "docs" / "deploy" / "standalone-vps.md").read_text(encoding="utf-8")
+        cliproxy = (REPO_ROOT / "docs" / "deploy" / "cliproxy-plus-standalone-vps.md").read_text(encoding="utf-8")
+        self.assertIn("REMOTE_PROXY_RUNTIME_POLICY", standalone)
+        self.assertIn("REMOTE_PROXY_PYTHON_BIN", standalone)
+        self.assertIn("REMOTE_PROXY_RUNTIME_POLICY", cliproxy)
+        self.assertIn("REMOTE_PROXY_PYTHON_BIN", cliproxy)
+
     def test_docs_do_not_use_stale_primary_config_name(self) -> None:
         stale_hits: list[tuple[Path, str]] = []
         for doc in [

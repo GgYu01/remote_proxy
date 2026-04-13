@@ -5,7 +5,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tests.test_support import BASH_BIN, GIT_BASH, run_bash_script, shell_executable, to_posix_path
+from tests.test_support import (
+    BASH_BIN,
+    GIT_BASH,
+    run_bash_command,
+    run_bash_script,
+    shell_executable,
+    to_posix_path,
+)
 
 
 class TestSupportTests(unittest.TestCase):
@@ -30,6 +37,15 @@ class TestSupportTests(unittest.TestCase):
 
             self.assertEqual(0, result.returncode, msg=result.stderr or result.stdout)
             self.assertIn("helper-ok", result.stdout)
+
+    def test_run_bash_command_executes_inline_shell(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workdir = Path(tmp)
+
+            result = run_bash_command("printf 'inline-ok\\n'", cwd=workdir)
+
+            self.assertEqual(0, result.returncode, msg=result.stderr or result.stdout)
+            self.assertIn("inline-ok", result.stdout)
 
 
 if __name__ == "__main__":

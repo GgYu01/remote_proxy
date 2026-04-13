@@ -6,6 +6,11 @@ set -euo pipefail
 # Description: Deploys sing-box using Podman Quadlet
 # ==============================================================================
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/lib/runtime_compat.sh"
+remote_proxy_runtime_preflight check 3.9 podman systemctl
+
 IS_ROOT=0
 if [ "$(id -u)" -eq 0 ]; then
     IS_ROOT=1
@@ -49,7 +54,7 @@ fi
 
 if [ ! -f singbox.json ]; then
     echo "⚠️ singbox.json not found. Running generator..."
-    python3 scripts/gen_config.py
+    "$REMOTE_PROXY_PYTHON_BIN" scripts/gen_config.py
 fi
 
 QUADLET_ENV_LINES=""

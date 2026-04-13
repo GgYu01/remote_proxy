@@ -8,6 +8,10 @@ set -euo pipefail
 
 echo "🚀 Starting Remote Proxy Installation..."
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/scripts/lib/runtime_compat.sh"
+
 SERVICE_NAME="${1:-${REMOTE_PROXY_SERVICE:-singbox}}"
 
 case "$SERVICE_NAME" in
@@ -41,13 +45,14 @@ echo "🔧 Step 1: Setting up Environment..."
 chmod +x scripts/*.sh
 chmod +x scripts/service.sh scripts/services/cliproxy_plus/*.sh 2>/dev/null || true
 ./scripts/setup_env.sh
+remote_proxy_runtime_preflight check 3.9 curl jq
 
 case "$SERVICE_NAME" in
     singbox)
         # 2. Generate Config
         echo "⚙️  Step 2: Generating Configuration..."
         ./scripts/gen_keys.sh
-        python3 scripts/gen_config.py
+        "$REMOTE_PROXY_PYTHON_BIN" scripts/gen_config.py
 
         # 3. Deploy
         echo "🚀 Step 3: Deploying Service..."

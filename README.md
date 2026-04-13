@@ -69,6 +69,22 @@ chmod +x install.sh scripts/*.sh scripts/service.sh scripts/services/cliproxy_pl
 ./scripts/service.sh cliproxy-plus verify
 ```
 
+## 运行时兼容层
+
+仓库现在默认启用宿主机运行时兼容层，核心环境变量如下：
+
+- `REMOTE_PROXY_RUNTIME_POLICY=hybrid`
+  默认模式。先检测 Python 与关键命令依赖；如果当前发行版原生仓库里能稳定提供兼容的版本化 Python 包，就自动补装并切换到该解释器；如果不能稳定修复，则阻断并打印精确诊断。
+- `REMOTE_PROXY_PYTHON_BIN`
+  手工指定一个已经验证可用的 Python 解释器，例如 `/usr/bin/python3.10`。适用于 Debian 10、Ubuntu 20.04 这类默认 `python3` 可能偏旧、但主机上已经预装了新解释器的场景。
+
+兼容层的设计边界：
+
+1. 不去强改系统默认 `/usr/bin/python3`。
+2. 只尝试使用当前宿主机已经存在的兼容解释器，或从当前已配置的原生仓库补装版本化 Python 包。
+3. 不自动添加第三方源，不为老发行版盲目替换系统 Python。
+4. 如果宿主机像 Debian 10 / Ubuntu 20.04 这样默认 Python 基线偏旧、且当前仓库源里也没有兼容候选，脚本会阻断并要求你显式提供 `REMOTE_PROXY_PYTHON_BIN` 或升级系统。
+
 ### 已有 `infra-core` 主机
 
 对于 `Ubuntu.online` 以及类似主机，不要在 `/mnt/hdo/infra-core` 内直接盲跑 `install.sh`。这类主机应按 sidecar / compose 集成方式处理：
@@ -115,6 +131,7 @@ podman ps -a --format '{{.Names}}\t{{.Image}}\t{{.Status}}'
 - `install.sh`：独立 VPS 路径的统一入口，支持 `singbox` 与 `cliproxy-plus`。
 - `scripts/service.sh`：`cliproxy-plus` 生命周期入口，支持 `install` / `verify` / `update` / `switch-version`。
 - `scripts/setup_env.sh`：安装系统依赖并准备 swap。
+- `scripts/lib/runtime_compat.sh`：宿主机运行时兼容层，负责 Python 解释器选择与 mixed 模式修复/阻断策略。
 - `scripts/gen_keys.sh`：为 `config.env` 执行幂等的受管密钥生成。
 - `scripts/gen_config.py`：根据 `config.env` 渲染 `singbox.json`。
 - `scripts/deploy.sh`：生成 Quadlet 与后备 systemd 服务定义。

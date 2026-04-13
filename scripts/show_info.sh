@@ -4,6 +4,11 @@
 # Description: Reads config.env and outputs client connection links
 # ==============================================================================
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/lib/runtime_compat.sh"
+remote_proxy_runtime_preflight check 3.9 curl
+
 if [ -f config.env ]; then
     set -a
     # shellcheck disable=SC1091
@@ -13,7 +18,7 @@ fi
 
 # Function to URL encode
 urlencode() {
-    python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$1"
+    "$REMOTE_PROXY_PYTHON_BIN" -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$1"
 }
 
 # Defaults

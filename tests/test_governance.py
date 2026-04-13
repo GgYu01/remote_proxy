@@ -14,6 +14,11 @@ class GovernanceTests(unittest.TestCase):
             python_files.extend(sorted((REPO_ROOT / subtree).rglob("*.py")))
         return python_files
 
+    def iter_shell_files(self) -> list[Path]:
+        shell_files = sorted(REPO_ROOT.glob("*.sh"))
+        shell_files.extend(sorted((REPO_ROOT / "scripts").rglob("*.sh")))
+        return shell_files
+
     def annotation_contains_pep604_union(self, node: ast.AST) -> bool:
         return any(
             isinstance(child, ast.BinOp) and isinstance(child.op, ast.BitOr)
@@ -71,6 +76,27 @@ class GovernanceTests(unittest.TestCase):
                 if self.annotation_contains_pep604_union(annotation):
                     offenders.append(path.relative_to(REPO_ROOT).as_posix())
                     break
+
+        self.assertEqual([], offenders)
+
+    def test_shell_entrypoints_do_not_hardcode_python3_execution(self) -> None:
+        offenders: list[str] = []
+        allowlist = {
+            (REPO_ROOT / "scripts" / "setup_env.sh").resolve(),
+            (REPO_ROOT / "scripts" / "lib" / "runtime_compat.sh").resolve(),
+        }
+
+        for path in self.iter_shell_files():
+            if path.resolve() in allowlist:
+                continue
+            for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                stripped = line.strip()
+                if "python3" not in stripped:
+                    continue
+                if stripped.startswith("#"):
+                    continue
+                offenders.append(f"{path.relative_to(REPO_ROOT).as_posix()}:{lineno}")
+                break
 
         self.assertEqual([], offenders)
 
