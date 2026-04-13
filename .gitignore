@@ -1,3 +1,6 @@
 .sisyphus/
 __pycache__/
 *.pyc
+/config.env
+/singbox.json
+/state/
