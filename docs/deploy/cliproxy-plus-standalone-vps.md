@@ -106,11 +106,45 @@ curl -H "Authorization: Bearer ${CLIPROXY_MANAGEMENT_KEY}" \
 ./scripts/service.sh cliproxy-plus update
 ```
 
+推荐的执行边界：
+
+1. 本地仓库先完成版本、脚本或文档变更，评审后提交到 `remote_proxy`。
+2. 远端主机只同步已经评审过的仓库版本，然后执行仓库内生命周期命令。
+3. 不要把 `/etc/systemd/system/cliproxy-plus.service` 或 Quadlet 文件当作人工长期维护入口；那只是部署产物，不是真相源。
+
 ## 切换版本
 
 ```bash
 ./scripts/service.sh cliproxy-plus switch-version docker.io/eceasy/cli-proxy-api-plus:v6.9.15-0
 ```
+
+如果只是升级镜像版本，优先使用 `switch-version`；如果是脚本、配置模板或部署逻辑一起更新，优先使用 `update`。
+
+## 状态持久化边界
+
+当前 `cliproxy-plus` 独立 VPS 路径是 `Podman + systemd`，不是 `docker compose`。
+
+部署产物会把以下主机目录 bind mount 进容器：
+
+- `state/cliproxy-plus/config.yaml` -> `/CLIProxyAPI/config.yaml`
+- `state/cliproxy-plus/auths/` -> `/root/.cli-proxy-api`
+- `state/cliproxy-plus/logs/` -> `/CLIProxyAPI/logs`
+- `state/cliproxy-plus/usage/` -> `/CLIProxyAPI/usage`
+
+因此：
+
+- OAuth / auth 文件默认不会因为镜像重建而丢失，只要你仍然沿用仓库脚本生成的服务定义；
+- `config.yaml` 与日志目录也会保留；
+- `usage` 实时统计本身不是自动落盘数据库，而是进程内存态。
+
+本仓库的正式收敛方式是生命周期备份恢复：
+
+1. 更新前调用 `/v0/management/usage/export`
+2. 将快照写入 `state/cliproxy-plus/usage/latest.json`
+3. 重建服务
+4. 更新后调用 `/v0/management/usage/import`
+
+`update`、`switch-version`，以及对已存在节点重复执行的 `install`，都会走这条保护路径。
 
 如果脚本阻断并提示 Python 版本过低，请优先检查：
 

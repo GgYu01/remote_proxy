@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -102,6 +103,78 @@ class CLIProxyPlusUsageLifecycleTests(unittest.TestCase):
             self.assertIn("Authorization:", curl_log)
             self.assertIn("test-management-key", curl_log)
             self.assertEqual("2", (workdir / "restore-attempts.txt").read_text(encoding="utf-8"))
+
+    def test_install_preserves_usage_when_existing_service_is_reachable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workdir = Path(tmp)
+            (workdir / "config").mkdir()
+            write_text_file(
+                workdir / "config" / "cliproxy-plus.env",
+                "\n".join(
+                    [
+                        "CLIPROXY_IMAGE=eceasy/cli-proxy-api-plus:v6.9.15-0",
+                        "CLIPROXY_PORT=8317",
+                        "CLIPROXY_MEMORY_LIMIT=128M",
+                        "CLIPROXY_MANAGEMENT_KEY=test-management-key",
+                    ]
+                )
+                + "\n",
+            )
+
+            home_dir = workdir / "home"
+            home_dir.mkdir()
+
+            bin_dir = workdir / "bin"
+            bin_dir.mkdir()
+            write_executable(
+                bin_dir / "curl",
+                "#!/bin/sh\n"
+                "printf '%s\\n' \"$*\" >> install-curl.log\n"
+                "case \"$*\" in\n"
+                "  *usage/export*) echo '{\"version\":1,\"usage\":{\"total_requests\":5}}' ;;\n"
+                "  *usage/import*) echo '{\"added\":5,\"skipped\":0}' ;;\n"
+                "  *'/v0/management/usage'*) echo '{\"usage\":{\"total_requests\":5}}' ;;\n"
+                "  *) echo '{\"ok\":true}' ;;\n"
+                "esac\n",
+            )
+            write_executable(bin_dir / "podman", "#!/bin/sh\nexit 0\n")
+            write_executable(bin_dir / "journalctl", "#!/bin/sh\nexit 0\n")
+            write_executable(bin_dir / "sleep", "#!/bin/sh\nexit 0\n")
+            write_executable(
+                bin_dir / "systemctl",
+                "#!/bin/sh\n"
+                "if [ \"$1\" = \"--user\" ]; then\n"
+                "  shift\n"
+                "fi\n"
+                "case \"$1\" in\n"
+                "  daemon-reload) exit 0 ;;\n"
+                "  list-unit-files) exit 0 ;;\n"
+                "  enable) exit 0 ;;\n"
+                "  restart) exit 0 ;;\n"
+                "  start) exit 0 ;;\n"
+                "  status) exit 0 ;;\n"
+                "esac\n"
+                "exit 0\n",
+            )
+
+            result = run_bash_script(
+                REPO_ROOT / "scripts" / "services" / "cliproxy_plus" / "install.sh",
+                cwd=workdir,
+                env={
+                    "HOME": str(home_dir),
+                    "TEST_EXTRA_PATH": str(bin_dir),
+                    "REMOTE_PROXY_PYTHON_BIN": sys.executable,
+                },
+            )
+
+            self.assertEqual(0, result.returncode, msg=result.stderr or result.stdout)
+            curl_log = (workdir / "install-curl.log").read_text(encoding="utf-8")
+            self.assertIn("/v0/management/usage/export", curl_log)
+            self.assertIn("/v0/management/usage/import", curl_log)
+            self.assertIn("/v0/management/usage", curl_log)
+            usage_file = workdir / "state" / "cliproxy-plus" / "usage" / "latest.json"
+            self.assertTrue(usage_file.exists(), msg=result.stdout)
+            self.assertIn("total_requests", usage_file.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
