@@ -35,15 +35,15 @@ class GenConfigTests(unittest.TestCase):
                     "VLESS_UUID=11111111-2222-3333-4444-555555555555",
                     "REALITY_PRIVATE_KEY=test_private_key",
                     "REALITY_SHORT_ID=deadbeefcafebabe",
-                    "REALITY_DEST=www.microsoft.com:443",
-                    "REALITY_SERVER_NAMES=www.microsoft.com,microsoft.com",
+                    "REALITY_DEST=www.cloudflare.com:443",
+                    "REALITY_SERVER_NAMES=www.cloudflare.com",
                 ]
             )
             + "\n"
         )
 
         vless_in = next(item for item in cfg["inbounds"] if item["type"] == "vless")
-        self.assertEqual("www.microsoft.com", vless_in["tls"]["reality"]["handshake"]["server"])
+        self.assertEqual("www.cloudflare.com", vless_in["tls"]["reality"]["handshake"]["server"])
         self.assertEqual(443, vless_in["tls"]["reality"]["handshake"]["server_port"])
 
     def test_reality_dest_without_explicit_port_keeps_default_443(self) -> None:
@@ -53,15 +53,15 @@ class GenConfigTests(unittest.TestCase):
                     "VLESS_UUID=11111111-2222-3333-4444-555555555555",
                     "REALITY_PRIVATE_KEY=test_private_key",
                     "REALITY_SHORT_ID=deadbeefcafebabe",
-                    "REALITY_DEST=www.microsoft.com",
-                    "REALITY_SERVER_NAMES=www.microsoft.com,microsoft.com",
+                    "REALITY_DEST=www.cloudflare.com",
+                    "REALITY_SERVER_NAMES=www.cloudflare.com",
                 ]
             )
             + "\n"
         )
 
         vless_in = next(item for item in cfg["inbounds"] if item["type"] == "vless")
-        self.assertEqual("www.microsoft.com", vless_in["tls"]["reality"]["handshake"]["server"])
+        self.assertEqual("www.cloudflare.com", vless_in["tls"]["reality"]["handshake"]["server"])
         self.assertEqual(443, vless_in["tls"]["reality"]["handshake"]["server_port"])
 
 

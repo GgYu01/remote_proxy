@@ -52,8 +52,8 @@ def main():
     # Reality Config
     reality_priv = config.get('REALITY_PRIVATE_KEY')
     reality_short_id = config.get('REALITY_SHORT_ID', '')
-    reality_dest = config.get('REALITY_DEST', 'www.microsoft.com:443')
-    reality_sn = config.get('REALITY_SERVER_NAMES', 'www.microsoft.com').split(',')
+    reality_dest = config.get('REALITY_DEST', 'www.cloudflare.com:443')
+    reality_sn = config.get('REALITY_SERVER_NAMES', 'www.cloudflare.com').split(',')
     reality_host, reality_port = parse_reality_dest(reality_dest)
 
     # Validation: If Reality is enabled (implied by default), check for Private Key
